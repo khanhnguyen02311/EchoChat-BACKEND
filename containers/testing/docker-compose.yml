@@ -1,0 +1,33 @@
+# "docker compose --env-file ./../../.env config"         to check the compose configs
+# "docker compose --env-file ./../../.env up"             to run the compose file
+# "docker compose --env-file ./../../.env stop"           to stop the containers
+# "docker compose --env-file ./../../.env down --volumes" to remove the containers & networks & data volumes
+
+# "psql -h localhost -p 18000 -d testdb1 -U testuser1" inside postgres container
+
+version: '2.19'
+
+services:
+  postgres:
+    image: postgres:15
+    restart: no
+    expose:
+      - '${POSTGRES_PORT}'
+    ports:
+      # - '5432:5432'
+      - '${POSTGRES_PORT}:${POSTGRES_PORT}'  # external:internal
+    environment:
+      - 'POSTGRES_DB=${POSTGRES_DB}'
+      - 'POSTGRES_USER=${POSTGRES_USR}'
+      - 'POSTGRES_PASSWORD=${POSTGRES_PWD}'
+    command: '-p ${POSTGRES_PORT}'
+
+  redis:
+    image: redis:7
+    restart: no
+    expose:
+      - '${REDIS_PORT}'
+    ports:
+      # - '6379:6379'
+      - '${REDIS_PORT}:${REDIS_PORT}'
+    command: 'redis-server --port ${REDIS_PORT} --save 60 1 --loglevel warning --requirepass ${REDIS_PWD}'

@@ -1,28 +1,31 @@
-DB_USERNAME = "testuser1"
-DB_PASSWORD = "testuser1pwd"
-DB_NAME = "testproj1"
+from os import environ
 
 
-class MYSQLConfig:
-    DATABASE_URL = "mysql://" + DB_USERNAME + ":" + DB_PASSWORD + "@localhost/" + DB_NAME + \
-                    "?unix_socket=/var/run/mysqld/mysqld.sock&charset=utf8mb4"
-    ECHO = False
-    AUTO_FLUSH = True
-    AUTO_COMMIT = False
-    POOL_SIZE = 15
-    MAX_OVERFLOW = 10
-    POOL_PRE_PING = True
+class Env:
+    PS_DB = environ.get("POSTGRES_DB")
+    PS_USR = environ.get("POSTGRES_USR")
+    PS_PWD = environ.get("POSTGRES_PWD")
+    PS_PORT = int(environ.get("POSTGRES_PORT"))
+
+    APP_PORT = int(environ.get("APP_PORT"))
+    APP_FRONTEND_URL = environ.get("APP_FRONTEND_URL")
+    APP_DEBUG = bool(environ.get("APP_DEBUG"))
+
+    SCR_HASHSALT = environ.get("SECURITY_HASHSALT")
 
 
-class MongoDBConfig:
-    DATABASE_URL = "mongodb://localhost:27017"
+# class MySQL:
+#     DB_URL = f"mysql://{Env.MS_USR}:{Env.MS_PWD}@localhost:{Env.MS_PORT}/{Env.MS_DB}"
+#            + "?unix_socket=/var/run/mysqld/mysqld.sock&charset=utf8mb4"
 
 
-class PostgreSQLConfig:
-    DATABASE_URL = "mysql://" + DB_USERNAME + ":" + DB_PASSWORD + "@localhost/" + DB_NAME + \
-                    "?unix_socket=/var/run/mysqld/mysqld.sock&charset=utf8mb4"
-    ECHO = False
-    AUTO_FLUSH = True
+class Postgres:
+    DB_URL = f"postgresql+psycopg2://{Env.PS_USR}:{Env.PS_PWD}@localhost:{Env.PS_PORT}/{Env.PS_DB}?sslmode=disable"
+
+
+class SQLAlchemy:
+    ECHO = True
+    AUTO_FLUSH = True  # flush after committing
     AUTO_COMMIT = False
     POOL_SIZE = 15
     MAX_OVERFLOW = 10
