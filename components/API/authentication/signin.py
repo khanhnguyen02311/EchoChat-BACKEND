@@ -1,8 +1,8 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
-
-from components.storages import Session, postgres_schemas as p_schemas, postgres_models as p_models
-from components.functions.account import handle_create_account
+from components.functions.account import handle_authenticate_account
+from components.functions.security import handle_create_access_token, handle_create_refresh_token
+from components.storages import PostgresSession
 
 router = APIRouter()
 
@@ -13,14 +13,17 @@ class InputSignin(BaseModel):
 
 
 @router.post("/signin")
-async def signin(inputs: InputSignin):
-    
-    new_account = p_models.Account()
-    with Session.begin() as session:
-        try:
-            handle_create_account(session, new_account)
-            session.commit()
-        except Exception as e:
-            session.rollback()
-            return str(e)
-    return "Done"
+async def signin(data: InputSignin):
+    with PostgresSession() as session:
+        error, user = handle_authenticate_account(session,
+                                                  username_or_email=data.username_or_email,
+                                                  password=data.password)
+        if error is not None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=error
+            )
+        return {
+            "access_token": handle_create_access_token(user),
+            "refresh_token": handle_create_refresh_token(user)
+        }

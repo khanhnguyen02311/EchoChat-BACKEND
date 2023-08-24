@@ -30,6 +30,6 @@ class AccountInfoSchema(BaseORMModel):
 
 class AccountSchema(BaseORMModel):
     id: int
-    email: str
+    username: str
     id_AccountInfo: int
-    rel_Addresses: List[AddressSchema]
+    # rel_Addresses: List[AddressSchema]

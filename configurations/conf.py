@@ -11,7 +11,11 @@ class Env:
     APP_FRONTEND_URL = environ.get("APP_FRONTEND_URL")
     APP_DEBUG = bool(environ.get("APP_DEBUG"))
 
-    SCR_HASHSALT = environ.get("SECURITY_HASHSALT")
+    # SCR_HASHSALT = environ.get("SECURITY_HASHSALT")
+    SCR_JWT_SECRET_KEY = environ.get("SECURITY_JWT_SECRET_KEY")
+    SCR_JWT_ALGORITHM = "HS256"
+    SCR_ACCESS_TOKEN_EXPIRE_MINUTES = int(environ.get("SECURITY_ACCESS_TOKEN_MINUTE"))
+    SCR_REFRESH_TOKEN_EXPIRE_MINUTES = int(environ.get("SECURITY_REFRESH_TOKEN_MINUTE"))
 
 
 # class MySQL:
@@ -30,3 +34,8 @@ class SQLAlchemy:
     POOL_SIZE = 15
     MAX_OVERFLOW = 10
     POOL_PRE_PING = True
+
+
+class Redis:
+    DB_PORT = int(environ.get("REDIS_PORT"))
+    DB_PWD = environ.get("REDIS_PWD")
