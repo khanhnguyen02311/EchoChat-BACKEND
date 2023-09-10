@@ -39,3 +39,9 @@ class SQLAlchemy:
 class Redis:
     DB_PORT = int(environ.get("REDIS_PORT"))
     DB_PWD = environ.get("REDIS_PWD")
+
+
+class Scylla:
+    DB_PORT = int(environ.get("SCYLLA_PORT"))
+    DB_KEYSPACE = environ.get("SCYLLA_KEYSPACE")
+    DB_REPLICATION_FACTOR = int(environ.get("SCYLLA_REPLICATION_FACTOR"))

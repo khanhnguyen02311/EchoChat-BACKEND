@@ -1,9 +1,12 @@
 # "docker compose --env-file ./../../.env config"         to check the compose configs
-# "docker compose --env-file ./../../.env up"             to run the compose file
+# "docker compose --env-file ./../../.env up -d"          to run the compose file
 # "docker compose --env-file ./../../.env stop"           to stop the containers
 # "docker compose --env-file ./../../.env down --volumes" to remove the containers & networks & data volumes
+# "docker exec -it <container-name> /bin/bash"            to connect to container
 
 # "psql -h localhost -p 18000 -d testdb1 -U testuser1" inside postgres container
+# "cqlsh" inside scylla container
+
 
 version: '2.19'
 
@@ -31,3 +34,11 @@ services:
       # - '6379:6379'
       - '${REDIS_PORT}:${REDIS_PORT}'
     command: 'redis-server --port ${REDIS_PORT} --save 60 1 --loglevel warning --requirepass ${REDIS_PWD}'
+
+  scylla:
+    image: scylladb/scylla
+    restart: no
+    expose:
+      - '${SCYLLA_PORT}'
+    ports:
+      - '${SCYLLA_PORT}:9042'

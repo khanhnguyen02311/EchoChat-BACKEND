@@ -14,7 +14,7 @@ class InputSignin(BaseModel):
 
 @router.post("/signin")
 async def signin(data: InputSignin):
-    with PostgresSession() as session:
+    with PostgresSession.begin() as session:
         error, user = handle_authenticate_account(session,
                                                   username_or_email=data.username_or_email,
                                                   password=data.password)

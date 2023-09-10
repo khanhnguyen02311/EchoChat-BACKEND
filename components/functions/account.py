@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from components.storages.postgres_models import Account, AccountInfo
 
 
-def handle_create_account_info(session: Session) -> tuple[Any, AccountInfo | None]:
+def handle_create_account_info(session: Session) -> tuple[Any, Any]:
     """Create new AccountInfo item. \n
     Return: (error, AccountInfo_item)"""
 
@@ -20,7 +20,7 @@ def handle_create_account_info(session: Session) -> tuple[Any, AccountInfo | Non
         raise FunctionException(handle_create_account_info.__name__, e)
 
 
-def handle_create_account(session: Session, new_account: Account) -> tuple[Any, Account | None]:
+def handle_create_account(session: Session, new_account: Account) -> tuple[Any, Any]:
     """Create new Account item from input infos.\n
     Return tuple: (error, Account_item)"""
 
@@ -46,7 +46,7 @@ def handle_create_account(session: Session, new_account: Account) -> tuple[Any, 
         raise FunctionException(handle_create_account.__name__, e)
 
 
-def handle_authenticate_account(session: Session, username_or_email: str, password: str) -> tuple[Any, Account | None]:
+def handle_authenticate_account(session: Session, username_or_email: str, password: str) -> tuple[Any, Any]:
     """Authenticate the signin infos. Return the account infos if validated.\n
     Return tuple: (error, Account_item)"""
     try:

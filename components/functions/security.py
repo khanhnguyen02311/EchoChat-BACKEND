@@ -3,7 +3,7 @@ from datetime import timedelta, datetime
 from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from jose import jwt, JWTError
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, HTTPBearer
 from passlib.context import CryptContext
 from sqlalchemy import select
 from pydantic import BaseModel, ConfigDict
@@ -13,6 +13,7 @@ from components.storages.postgres_models import Account
 
 pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin", scheme_name="JWT")
+header_scheme = HTTPBearer()
 
 
 class AccountToken(BaseModel):
@@ -21,8 +22,9 @@ class AccountToken(BaseModel):
     username: str
 
 
-def _handle_create_token(user: Account, token_type: str) -> str:
+def _create_token(user: Account, token_type: str) -> str:
     """Return the token based on the subject (account)"""
+
     now = datetime.utcnow()
     to_encode = {"iat": now, "sub": AccountToken.model_validate(user).model_dump(), "typ_token": token_type}
     if token_type == "access":
@@ -36,8 +38,9 @@ def _handle_create_token(user: Account, token_type: str) -> str:
     return encoded_jwt
 
 
-def _handle_decode_token(token: str):
+def _decode_token(token: str):
     """Decode the token and return the internal payload"""
+
     try:
         payload = jwt.decode(token, Env.SCR_JWT_SECRET_KEY, algorithms=[Env.SCR_JWT_ALGORITHM],
                              options={"verify_exp": True, "require_sub": False, "verify_sub": False})
@@ -62,29 +65,29 @@ def handle_create_hash(password) -> str:
 def handle_create_access_token(user: Account) -> str:
     """Return the access token based on the subject (account)"""
 
-    return _handle_create_token(user, "access")
+    return _create_token(user, "access")
 
 
 def handle_create_refresh_token(user: Account) -> str:
     """Return the refresh token based on the subject (account)"""
 
-    return _handle_create_token(user, "refresh")
+    return _create_token(user, "refresh")
 
 
-def handle_get_current_user(access_token: Annotated[str, Depends(oauth2_scheme)]) -> Account:
-    """Return the signed user from the access token. Raise error if needed. \n
-    Return values: (signed_account)"""
-
+def handle_get_current_user(access_token: str) -> Account:
+    """Return the signed user from the input access token. Raise error if needed. \n
+        Return values: (signed_account)"""
     try:
-        payload = _handle_decode_token(access_token)
+        payload = _decode_token(access_token)
         if payload.get("typ_token") == "refresh":
             raise Exception("Token invalid or could not validate credential: Cannot use refresh token")
         user = payload.get("sub")
-        with PostgresSession() as session:
+        with PostgresSession.begin() as session:
             user_query = select(Account).where(Account.id == user.get("id"))
             user = session.scalar(user_query)
             if user is None:
                 raise Exception("User not found")
+            session.expunge_all()
             return user
 
     except Exception as e:
@@ -92,19 +95,26 @@ def handle_get_current_user(access_token: Annotated[str, Depends(oauth2_scheme)]
                             detail=str(e))
 
 
+def handle_get_current_user_oauth2(access_token: Annotated[str, Depends(oauth2_scheme)]) -> Account:
+    """Return the signed user from the OAuth2 access token. Raise error if needed. \n
+    Return values: (signed_account)"""
+
+    return handle_get_current_user(access_token)
+
+
 def handle_renew_access_token(refresh_token: Annotated[str, Depends(oauth2_scheme)]) -> str | None:
     """Return the new access token with the provided refresh token. Raise error if needed. \n
     Return values: (access_token)"""
 
     try:
-        payload = _handle_decode_token(refresh_token)
+        payload = _decode_token(refresh_token)
         if payload.get("typ_token") == "access":
             raise Exception("Token invalid or could not validate credential: Cannot use access token")
         # Check from deactivated database
         if RedisSession.get(payload.get("jti")) is not None:
             raise Exception("Token invalid or could not validate credential: Token expired")
         user = payload.get("sub")
-        with PostgresSession() as session:
+        with PostgresSession.begin() as session:
             user_query = select(Account).where(Account.id == user.get("id"))
             user = session.scalar(user_query)
             if user is None:
@@ -121,7 +131,7 @@ async def handle_deactivate_token(refresh_token: Annotated[str, Depends(oauth2_s
     """Deactivate/blacklist the refresh token. Raise error if needed."""
 
     try:
-        payload = _handle_decode_token(refresh_token)
+        payload = _decode_token(refresh_token)
         if payload.get("typ_token") == "access":
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail="Token invalid or could not validate credential: Cannot use access token")
