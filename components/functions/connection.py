@@ -1,25 +1,32 @@
-from fastapi import WebSocket, HTTPException, status
-from components.functions.security import handle_get_current_user
+from fastapi import WebSocket
+from components.functions.chat import handle_add_message
 
 
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: list[WebSocket] = []
+        self.active_connections = []
 
-    async def connect(self, websocket: WebSocket, access_token: str):
+    async def connect(self, websocket: WebSocket):
         await websocket.accept()
-        try:
-            account = handle_get_current_user(access_token)
-        except HTTPException as e:
-            await websocket.send_text(f"Validation error: {e.detail}")
-            await websocket.close()
-            return False
-        print(account.id)
         self.active_connections.append(websocket)
-        return True
 
     def disconnect(self, websocket: WebSocket):
         self.active_connections.remove(websocket)
+
+    async def read_message(self, account_id, message: dict, websocket: WebSocket):
+        try:
+            type = message['type']  # for later if needed
+            action = message['action']
+            group_id = message['group']
+            content = message['content']
+            if action == "new":
+                created_message = handle_add_message(account_id, group_id, content)
+                if created_message is None:
+                    raise Exception("Invalid group")
+                await self.send_personal_message(f"SUCCESSFUL: {content}", websocket)
+
+        except Exception as e:
+            await self.send_personal_message(f"UNSUCCESSFUL: {str(e)}", websocket)
 
     async def send_personal_message(self, message: str, websocket: WebSocket):
         await websocket.send_text(message)
