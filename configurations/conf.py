@@ -11,16 +11,10 @@ class Env:
     APP_FRONTEND_URL = environ.get("APP_FRONTEND_URL")
     APP_DEBUG = bool(environ.get("APP_DEBUG"))
 
-    # SCR_HASHSALT = environ.get("SECURITY_HASHSALT")
     SCR_JWT_SECRET_KEY = environ.get("SECURITY_JWT_SECRET_KEY")
     SCR_JWT_ALGORITHM = "HS256"
     SCR_ACCESS_TOKEN_EXPIRE_MINUTES = int(environ.get("SECURITY_ACCESS_TOKEN_MINUTE"))
     SCR_REFRESH_TOKEN_EXPIRE_MINUTES = int(environ.get("SECURITY_REFRESH_TOKEN_MINUTE"))
-
-
-# class MySQL:
-#     DB_URL = f"mysql://{Env.MS_USR}:{Env.MS_PWD}@localhost:{Env.MS_PORT}/{Env.MS_DB}"
-#            + "?unix_socket=/var/run/mysqld/mysqld.sock&charset=utf8mb4"
 
 
 class Postgres:

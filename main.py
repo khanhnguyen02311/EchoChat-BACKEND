@@ -1,7 +1,7 @@
 # "python main.py" to run the application
 
-from components import create_app
 import uvicorn
+from components import create_app
 from configurations.conf import Env
 
 app = create_app(Env.APP_DEBUG)

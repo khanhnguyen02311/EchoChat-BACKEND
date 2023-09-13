@@ -1,5 +1,3 @@
-import json
-
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException, WebSocketException, status
 from components.functions.connection import ConnectionManager
 from components.functions.security import handle_get_current_user

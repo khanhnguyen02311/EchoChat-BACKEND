@@ -3,7 +3,7 @@ from datetime import timedelta, datetime
 from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from jose import jwt, JWTError
-from fastapi.security import OAuth2PasswordBearer, HTTPBearer
+from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from sqlalchemy import select
 from pydantic import BaseModel, ConfigDict
@@ -13,7 +13,6 @@ from components.storages.postgres_models import Account
 
 pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin", scheme_name="JWT")
-header_scheme = HTTPBearer()
 
 
 class AccountToken(BaseModel):
