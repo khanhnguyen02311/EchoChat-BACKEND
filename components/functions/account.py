@@ -1,58 +1,43 @@
+import random, string
 from typing import Any
-from . import FunctionException, security
 from sqlalchemy import select, or_
 from sqlalchemy.orm import Session
-from components.storages.postgres_models import Account, AccountInfo
-
-
-def handle_create_account_info(session: Session) -> tuple[Any, Any]:
-    """Create new AccountInfo item. \n
-    Return: (error, AccountInfo_item)"""
-
-    try:
-        new_account_info = AccountInfo(name="TemporaryName")
-        session.add(new_account_info)
-        session.flush()
-        return None, new_account_info
-
-    except Exception as e:
-        session.rollback()
-        raise FunctionException(handle_create_account_info.__name__, e)
+from components.storages.postgres_models import Account, Accountinfo
+from components.functions import security
 
 
 def handle_create_account(session: Session, new_account: Account) -> tuple[Any, Any]:
-    """Create new Account item from input infos.\n
-    Return tuple: (error, Account_item)"""
+    """Create new Account item from input info.\n
+    Return tuple: (error, Account item)"""
 
     try:
         # check existed accounts
-        acc_query = select(Account).where(
+        account_query = select(Account).where(
             or_(Account.username == new_account.username, Account.email == new_account.email))
-        if len(session.scalars(acc_query).all()) >= 1:
+        if session.scalars(account_query).first() is not None:
             return "Account already existed", None
-
-        # add new account info with temp name
-        error, new_account_info = handle_create_account_info(session)
-        if error is not None:
-            return error, None
+        # add new account info and point it to new account
+        new_accountinfo = Accountinfo()
+        session.add(new_accountinfo)
+        session.flush()
         new_account.password = security.handle_create_hash(new_account.password)
-        new_account.id_AccountInfo = new_account_info.id
+        new_account.accountinfo_id = new_accountinfo.id
         session.add(new_account)
         session.flush()
         return None, new_account
 
     except Exception as e:
-        session.rollback()
-        raise FunctionException(handle_create_account.__name__, e)
+        return str(e), None
 
 
 def handle_authenticate_account(session: Session, username_or_email: str, password: str) -> tuple[Any, Any]:
-    """Authenticate the signin infos. Return the account infos if validated.\n
-    Return tuple: (error, Account_item)"""
+    """Authenticate the signin info. Return the account info if validated.\n
+    Return tuple: (error, Account item)"""
+
     try:
-        acc_query = select(Account).where(
+        account_query = select(Account).where(
             or_(Account.username == username_or_email, Account.email == username_or_email))
-        acc = session.scalar(acc_query)
+        acc = session.scalar(account_query)
         if not acc:
             return "Account not found", None
         if not security.handle_verify_password(password, acc.password):
@@ -60,4 +45,20 @@ def handle_authenticate_account(session: Session, username_or_email: str, passwo
         return None, acc
 
     except Exception as e:
-        raise FunctionException(handle_authenticate_account.__name__, e)
+        return str(e), None
+
+
+def handle_edit_accountinfo(session: Session, accountinfo_token: Accountinfo, accountinfo_new: Accountinfo):
+
+    try:
+        accountinfo_query = select(Accountinfo).where(
+            Accountinfo.id == accountinfo_token.id
+        )
+        accountinfo = session.scalar(accountinfo_query)
+        if not accountinfo:
+            return "Account not found", None
+
+        return True  # on progress
+
+    except Exception as e:
+        return str(e), None

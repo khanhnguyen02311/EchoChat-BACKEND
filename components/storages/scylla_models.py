@@ -6,14 +6,6 @@ from cassandra.cqlengine.management import sync_table
 
 
 # ==============================================================================
-class TestTable(Model):
-    id = columns.UUID(primary_key=True, default=uuid.uuid4)
-    text = columns.Text()
-    number = columns.Integer()
-    time_created = columns.DateTime(default=datetime.utcnow)
-
-
-# ==============================================================================
 class ChatGroup(Model):
     id = columns.UUID(primary_key=True, default=uuid.uuid4)
     name = columns.Text(0, 128)
@@ -49,7 +41,6 @@ class ChatMessage(Model):
 
 # ==============================================================================
 def sync_tables():
-    sync_table(TestTable)
     sync_table(ChatGroup)
     sync_table(ChatParticipantByAccount)
     sync_table(ChatParticipantByChatGroup)

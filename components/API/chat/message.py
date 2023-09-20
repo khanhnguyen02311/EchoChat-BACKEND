@@ -23,5 +23,6 @@ async def chat_endpoint(websocket: WebSocket, token: str):
         while True:
             data = await websocket.receive_json()
             await manager.read_message(account.id, data, websocket)
+            
     except WebSocketDisconnect:
         manager.disconnect(websocket)

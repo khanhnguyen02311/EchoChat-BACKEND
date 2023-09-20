@@ -2,14 +2,14 @@ import uuid
 from datetime import timedelta, datetime
 from typing import Annotated
 from fastapi import Depends, HTTPException, status
-from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordBearer
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 from sqlalchemy import select
 from pydantic import BaseModel, ConfigDict
-from components.storages import PostgresSession, RedisSession
 from configurations.conf import Env
-from components.storages.postgres_models import Account
+from components.storages import PostgresSession, RedisSession
+from components.storages.postgres_models import Account, Accountinfo
 
 pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin", scheme_name="JWT")
@@ -18,7 +18,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin", scheme_name="JWT")
 class AccountToken(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
-    username: str
+    accountinfo_id: int
 
 
 def _create_token(user: Account, token_type: str) -> str:
@@ -40,11 +40,8 @@ def _create_token(user: Account, token_type: str) -> str:
 def _decode_token(token: str):
     """Decode the token and return the internal payload"""
 
-    try:
-        payload = jwt.decode(token, Env.SCR_JWT_SECRET_KEY, algorithms=[Env.SCR_JWT_ALGORITHM],
-                             options={"verify_exp": True, "require_sub": False, "verify_sub": False})
-    except JWTError as e:
-        raise Exception(f"Token invalid or could not validate credential: {str(e)}")
+    payload = jwt.decode(token, Env.SCR_JWT_SECRET_KEY, algorithms=[Env.SCR_JWT_ALGORITHM],
+                         options={"verify_exp": True, "require_sub": False, "verify_sub": False})
     return payload
 
 
@@ -73,30 +70,31 @@ def handle_create_refresh_token(user: Account) -> str:
     return _create_token(user, "refresh")
 
 
-def handle_get_current_user(access_token: str) -> Account:
-    """Return the signed user from the input access token. Raise error if needed. \n
-        Return values: (signed_account)"""
+def handle_get_current_user(access_token: str) -> Accountinfo:
+    """Return the decoded user info from the input access token. Raise error if needed. \n
+        Return values: (decoded accountinfo)"""
     try:
         payload = _decode_token(access_token)
         if payload.get("typ_token") == "refresh":
-            raise Exception("Token invalid or could not validate credential: Cannot use refresh token")
+            raise Exception("Cannot use refresh token")
+
         user = payload.get("sub")
         with PostgresSession.begin() as session:
-            user_query = select(Account).where(Account.id == user.get("id"))
-            user = session.scalar(user_query)
+            accountinfo_query = select(Accountinfo).where(Accountinfo.id == user.get("accountinfo_id"))
+            user = session.scalar(accountinfo_query)
             if user is None:
                 raise Exception("User not found")
             session.expunge_all()
             return user
 
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=str(e))
 
 
-def handle_get_current_user_oauth2(access_token: Annotated[str, Depends(oauth2_scheme)]) -> Account:
-    """Return the signed user from the OAuth2 access token. Raise error if needed. \n
-    Return values: (signed_account)"""
+def handle_get_current_user_oauth2(access_token: Annotated[str, Depends(oauth2_scheme)]) -> Accountinfo:
+    """Return the decoded user info from the OAuth2 access token. Raise error if needed. \n
+    Return values: (decoded accountinfo)"""
 
     return handle_get_current_user(access_token)
 
@@ -108,21 +106,22 @@ def handle_renew_access_token(refresh_token: Annotated[str, Depends(oauth2_schem
     try:
         payload = _decode_token(refresh_token)
         if payload.get("typ_token") == "access":
-            raise Exception("Token invalid or could not validate credential: Cannot use access token")
+            raise Exception("Cannot use access token")
+
         # Check from deactivated database
         if RedisSession.get(payload.get("jti")) is not None:
-            raise Exception("Token invalid or could not validate credential: Token expired")
+            raise Exception("Token expired")
+
         user = payload.get("sub")
         with PostgresSession.begin() as session:
             user_query = select(Account).where(Account.id == user.get("id"))
             user = session.scalar(user_query)
             if user is None:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                    detail="Token invalid or could not validate credential: User not found")
+                raise Exception("User not found")
             return handle_create_access_token(user)
 
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=str(e))
 
 
@@ -132,10 +131,10 @@ async def handle_deactivate_token(refresh_token: Annotated[str, Depends(oauth2_s
     try:
         payload = _decode_token(refresh_token)
         if payload.get("typ_token") == "access":
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Token invalid or could not validate credential: Cannot use access token")
+            raise Exception("Cannot use access token")
+
         RedisSession.set(payload.get("jti"), "deactivate", ex=Env.SCR_REFRESH_TOKEN_EXPIRE_MINUTES * 60)
 
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Execution error: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=str(e))

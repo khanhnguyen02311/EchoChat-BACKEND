@@ -1,35 +1,26 @@
-from typing import List, Optional
-from pydantic import BaseModel, ConfigDict, constr
-from . import postgres_models
+from datetime import datetime
+from typing import Optional
+from pydantic import BaseModel, ConfigDict
+
+
+# from . import postgres_models
 
 
 class BaseORMModel(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class TestingTableSchema(BaseORMModel):
-    id: int
-    item: str
-    optional_item: Optional[str]
-    number: int
-
-
-class AddressSchema(BaseORMModel):
-    id: int
-    detail_address: str
-    id_AccountInfo: int
-
-
-class AccountInfoSchema(BaseORMModel):
+class AccountinfoSchema(BaseORMModel):
     id: int
     name: str
-    age: Optional[int]
-    phone_number: Optional[str]
-    id_Account: int
+    identifier: int
+    description: str
+    account_id: int
 
 
 class AccountSchema(BaseORMModel):
     id: int
     username: str
-    id_AccountInfo: int
+    accountinfo_id: int
+    time_created: datetime
     # rel_Addresses: List[AddressSchema]
