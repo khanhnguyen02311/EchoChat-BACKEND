@@ -3,7 +3,7 @@
 import random, string
 from datetime import datetime
 from typing import Annotated, Optional, List
-from sqlalchemy import ForeignKey, types, Table, Column
+from sqlalchemy import ForeignKey, types, Table, Column, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship, DeclarativeBase
 
 # declare datatypes
@@ -33,10 +33,16 @@ class Base(DeclarativeBase):
     }
 
 
+# Friend = Table(
+#     "friend", Base.metadata,
+#     Column("accountinfo_id_user", ForeignKey("accountinfo.id"), primary_key=True),
+#     Column("accountinfo_id_friend", ForeignKey("accountinfo.id"), primary_key=True),
+# )
+
 Friend = Table(
     "friend", Base.metadata,
-    Column("accountinfo_id_user", ForeignKey("accountinfo.id"), primary_key=True),
-    Column("accountinfo_id_friend", ForeignKey("accountinfo.id"), primary_key=True),
+    Column("accountinfo_id_user", Integer, ForeignKey("accountinfo.id"), primary_key=True),
+    Column("accountinfo_id_friend", Integer, ForeignKey("accountinfo.id"), primary_key=True)
 )
 
 
@@ -49,9 +55,9 @@ class Account(Base):
     email: Mapped[str128]
     time_created: Mapped[timestamp]
 
-    accountinfo_id: Mapped[int] = mapped_column(ForeignKey("accountinfo.id"))
-    accountinfo_rel: Mapped["Accountinfo"] = relationship(back_populates="account_rel",
-                                                          cascade='save-update, merge, delete')
+    accountinfo_id: Mapped[Optional[int]] = mapped_column(ForeignKey("accountinfo.id"))
+    accountinfo_rel: Mapped[Optional["Accountinfo"]] = relationship(back_populates="account_rel",
+                                                                    cascade='save-update, merge, delete')
 
 
 # ==============================================================================
@@ -67,11 +73,16 @@ class Accountinfo(Base):
                                                                                 cascade='save-update, merge, delete')
 
     # Account reference
-    account_rel: Mapped["Account"] = relationship(back_populates='accountinfo_rel')
+    account_rel: Mapped[Optional["Account"]] = relationship(back_populates='accountinfo_rel')
 
-    # friend_rel: Mapped[List["Accountinfo"]] = relationship("Accountinfo", secondary=Friend,
-    #                                                        primaryjoin=id == Friend.c.accountinfo_id_user,
-    #                                                        secondaryjoin=id == Friend.c.accountinfo_id_friend)
+    friend_rel: Mapped[List["Accountinfo"]] = relationship("Accountinfo", secondary=Friend,
+                                                           primaryjoin="friend.c.accountinfo_id_user == accountinfo.c.id",
+                                                           secondaryjoin="friend.c.accountinfo_id_friend == accountinfo.c.id")
+
+    # friend_rel_right: Mapped[List["Accountinfo"]] = relationship("Accountinfo", secondary=Friend,
+    #                                                              primaryjoin=id == Friend.c.accountinfo_id_friend,
+    #                                                              secondaryjoin=id == Friend.c.accountinfo_id_user,
+    #                                                              back_populates="friend_rel_left")
 
 
 # ==============================================================================

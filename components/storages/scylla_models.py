@@ -6,23 +6,28 @@ from cassandra.cqlengine.management import sync_table
 
 
 # ==============================================================================
-class ChatGroup(Model):
+class Chatgroup(Model):
+    id = columns.UUID(primary_key=True, default=uuid.uuid4)
+    display_name = columns.Text(0, 128)
+    visibility = columns.Boolean(default=True)
+    time_created = columns.DateTime(default=datetime.utcnow)
+
+
+# ==============================================================================
+class ChatgroupByName(Model):
     id = columns.UUID(primary_key=True, default=uuid.uuid4)
     name = columns.Text(0, 128)
-    time_created = columns.DateTime(primary_key=True, clustering_order="DESC", default=datetime.utcnow)
+    time_created = columns.DateTime(default=datetime.utcnow)
 
 
 # ==============================================================================
-class ChatParticipantByAccount(Model):
-    id = columns.UUID(default=uuid.uuid4)
-    notify = columns.Boolean()
-
+class ChatparticipantByAccount(Model):
     id_account = columns.Integer(primary_key=True)
-    id_chatgroup = columns.UUID(primary_key=True, clustering_order="DESC")
+    id_chatgroup = columns.UUID(primary_key=True, clustering_order="ASC")
 
 
 # ==============================================================================
-class ChatParticipantByChatGroup(Model):
+class ChatparticipantByChatgroup(Model):
     id = columns.UUID(default=uuid.uuid4)
     notify = columns.Boolean()
 
@@ -31,7 +36,7 @@ class ChatParticipantByChatGroup(Model):
 
 
 # ==============================================================================
-class ChatMessage(Model):
+class Chatmessage(Model):
     id = columns.UUID(default=uuid.uuid4)
     text = columns.Text(0, 512)
     id_chatgroup = columns.UUID(primary_key=True)
@@ -41,7 +46,8 @@ class ChatMessage(Model):
 
 # ==============================================================================
 def sync_tables():
-    sync_table(ChatGroup)
-    sync_table(ChatParticipantByAccount)
-    sync_table(ChatParticipantByChatGroup)
-    sync_table(ChatMessage)
+    # sync_table(ChatGroup)
+    # sync_table(ChatParticipantByAccount)
+    # sync_table(ChatParticipantByChatGroup)
+    # sync_table(ChatMessage)
+    pass

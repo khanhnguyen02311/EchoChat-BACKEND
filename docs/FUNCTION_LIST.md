@@ -1,17 +1,14 @@
-### Guests:
+### Users:
 
 - [ ] Sign up, sign in, logout
     - [x] ~~Manual with user/pass~~
     - [ ] Facebook, Google
-- [ ] See public group invitation
-
-### Users:
-
 - [ ] Edit user information:
     - [ ] Edit name, username, password, email
     - [ ] Edit avatar, description
-- [ ] Add friend, remove friend
+- [x] ~~Add friend, remove friend~~ ***(OPTIONAL)***
 - [ ] Join public groups
+- [ ] See private group invitation
 - [ ] Leave groups
 - [ ] Create group chat
 - [ ] Gain admin in created group chat

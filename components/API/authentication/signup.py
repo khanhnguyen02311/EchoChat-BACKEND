@@ -1,23 +1,16 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
-from components.storages import PostgresSession, postgres_models as p_models
+from components.storages import PostgresSession, postgres_schemas as p_schemas
 from components.functions.account import handle_create_account
 
 router = APIRouter()
 
 
-class InputSignup(BaseModel):
-    email: str
-    username: str
-    password: str
-
-
 @router.post("/signup")
-async def signup(inputs: InputSignup):
-    new_account = p_models.Account(**inputs.model_dump())
+async def signup(account_signup: p_schemas.AccountSchemaPOST):
     with PostgresSession.begin() as session:
-        error, account = handle_create_account(session, new_account)
+        error, account = handle_create_account(session, account_signup)
         if error is not None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail=error)

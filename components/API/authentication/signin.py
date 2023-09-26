@@ -25,7 +25,7 @@ async def signin(data: InputSignin):
                 detail=error
             )
 
-    return {
-        "access_token": handle_create_access_token(user),
-        "refresh_token": handle_create_refresh_token(user)
-    }
+        return {
+            "access_token": handle_create_access_token(user),
+            "refresh_token": handle_create_refresh_token(user)
+        }

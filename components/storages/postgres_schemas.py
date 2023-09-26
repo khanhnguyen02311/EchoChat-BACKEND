@@ -14,13 +14,23 @@ class AccountinfoSchema(BaseORMModel):
     id: int
     name: str
     identifier: int
+    description: str | None
+
+
+class AccountinfoSchemaPUT(BaseORMModel):
+    name: str
+    identifier: int
     description: str
-    account_id: int
 
 
-class AccountSchema(BaseORMModel):
+class AccountSchemaGET(BaseORMModel):
     id: int
     username: str
     accountinfo_id: int
     time_created: datetime
-    # rel_Addresses: List[AddressSchema]
+
+
+class AccountSchemaPOST(BaseORMModel):
+    username: str
+    password: str
+    email: str
