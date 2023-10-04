@@ -51,3 +51,4 @@ services:
       - '9042'
     ports:
       - '9042:9042'
+    command: --developer-mode 1 --smp 1
