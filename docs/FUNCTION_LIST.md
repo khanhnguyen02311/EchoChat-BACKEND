@@ -1,12 +1,12 @@
 ### Users:
 
 - [ ] Sign up, sign in, logout
-    - [x] ~~Manual with user/pass~~
+    - [x] Manual with user/pass
     - [ ] Facebook, Google
 - [ ] Edit user information:
     - [ ] Edit name, username, password, email
     - [ ] Edit avatar, description
-- [x] ~~Add friend, remove friend~~ ***(OPTIONAL)***
+- [ ] ~~Add friend, remove friend~~ ***(OPTIONAL)***
 - [ ] Join public groups
 - [ ] See private group invitation
 - [ ] Leave groups
@@ -21,7 +21,7 @@
 - [ ] Pin / unpin messages
 - [ ] Change group notification setting
 - [ ] Show activity status & see others status
-- [x] ~~Send global messages (simpler Facebook stories)~~ ***(OPTIONAL)***
+- [ ] ~~Send global messages (simpler Facebook stories)~~ ***(OPTIONAL)***
 - [ ] Report groups with description
 
 ### Group admins:
