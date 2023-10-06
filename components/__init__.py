@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from components.API import router_super_hub
+from components.API import super_hub
 from components.storages import postgres_models
 from configurations import conf
 
@@ -14,6 +14,6 @@ def create_app(debug: bool):
         allow_methods=["*"],
         allow_headers=[""]
     )
-    app.include_router(router_super_hub)
+    app.include_router(super_hub)
 
     return app
