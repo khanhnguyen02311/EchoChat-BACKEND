@@ -7,12 +7,12 @@ from components.storages import PostgresSession, postgres_models as p_models, po
 router = APIRouter()
 
 
-@router.get("/me/info")
+@router.get("/me/info/get")
 async def get_info(token_account: Annotated[p_models.Accountinfo, Depends(handle_get_current_user_oauth2)]):
     return p_schemas.AccountinfoSchema.model_validate(token_account).model_dump()
 
 
-@router.post("/me/edit")
+@router.post("/me/info/set")
 async def edit_user(accountinfo_new: p_schemas.AccountinfoSchemaPUT,
                     token_account: Annotated[p_models.Accountinfo, Depends(handle_get_current_user_oauth2)]):
     with PostgresSession.begin() as session:
