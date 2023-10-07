@@ -6,48 +6,127 @@ from cassandra.cqlengine.management import sync_table
 
 
 # ==============================================================================
-class Chatgroup(Model):
-    id = columns.UUID(primary_key=True, default=uuid.uuid4)
-    display_name = columns.Text(0, 128)
+class Group(Model):
+    """Store info, used for normal group operations \n
+    - Primary key: (id)"""
+
+    id = columns.UUID(primary_key=True, default=uuid.uuid1)
+
+    name = columns.Text(max_length=64, required=True)
+    description = columns.Text(max_length=128)
     visibility = columns.Boolean(default=True)
     time_created = columns.DateTime(default=datetime.utcnow)
 
 
 # ==============================================================================
-class ChatgroupByName(Model):
-    id = columns.UUID(primary_key=True, default=uuid.uuid4)
-    name = columns.Text(0, 128)
+class GroupByName(Model):
+    """Store visible group info, used for searching groups by name \n
+    Primary key: \n ((name), id) \n
+    with id DESC"""
+
+    name = columns.Text(primary_key=True, max_length=64)
+    id = columns.UUID(primary_key=True, clustering_order="DESC", default=uuid.uuid1)
+
+    description = columns.Text(max_length=128)
     time_created = columns.DateTime(default=datetime.utcnow)
 
 
 # ==============================================================================
-class ChatparticipantByAccount(Model):
-    id_account = columns.Integer(primary_key=True)
-    id_chatgroup = columns.UUID(primary_key=True, clustering_order="ASC")
+class ParticipantByAccount(Model):
+    """Store participant info, use for querying latest group activities of specific account \n
+    Primary key: \n ((accountinfo_id), group_id, last_updated) \n
+    with group_id DESC, last_updated DESC"""
+
+    accountinfo_id = columns.Integer(primary_key=True)
+    group_id = columns.UUID(primary_key=True, clustering_order="DESC")
+    last_updated = columns.DateTime(primary_key=True, clustering_order="DESC", default=datetime.utcnow)
+
+    notify = columns.Boolean(default=True)
+    role = columns.Integer(default=0)  # 0: participant; 1: group admin; 2: group creator
 
 
 # ==============================================================================
-class ChatparticipantByChatgroup(Model):
-    id = columns.UUID(default=uuid.uuid4)
-    notify = columns.Boolean()
+class ParticipantByGroup(Model):
+    """Store participant info, used for getting participant list and notification-based operations \n
+    Primary key: \n ((group_id), time_created) \n
+    with time_created DESC"""
 
-    id_chatgroup = columns.UUID(primary_key=True)
-    id_account = columns.Integer(primary_key=True, clustering_order="DESC")
-
-
-# ==============================================================================
-class Chatmessage(Model):
-    id = columns.UUID(default=uuid.uuid4)
-    text = columns.Text(0, 512)
-    id_chatgroup = columns.UUID(primary_key=True)
+    group_id = columns.UUID(primary_key=True)
     time_created = columns.DateTime(primary_key=True, clustering_order="DESC", default=datetime.utcnow)
-    id_chatparticipant = columns.UUID(primary_key=True)
+
+    accountinfo_id = columns.Integer(required=True)
+    notify = columns.Boolean(default=True)
+    role = columns.Integer(default=0)  # 0: participant; 1: group admin; 2: group creator
+
+
+# ==============================================================================
+class MessageByAccount(Model):
+    """Store messages sorted by account, used for user history and related things \n
+    Primary key: \n ((accountinfo_id), time_created) \n
+    with time_created DESC"""
+
+    accountinfo_id = columns.Integer(primary_key=True)
+    time_created = columns.DateTime(primary_key=True, clustering_order="DESC", default=datetime.utcnow)
+
+    group_id = columns.UUID(required=True)
+    group_name = columns.Text(max_length=64)
+    accountinfo_name = columns.Text(max_length=64)
+    type = columns.SmallInt(default=0)  # 0: text messages; 1: files
+    content = columns.Text(max_length=256, required=True)
+
+
+# ==============================================================================
+class MessageByGroup(Model):
+    """Store messages sorted by group, used for querying group messages \n
+    Primary key: \n ((group_id), time_created) \n
+    with time_created DESC"""
+
+    group_id = columns.UUID(primary_key=True)
+    time_created = columns.DateTime(primary_key=True, clustering_order="DESC", default=datetime.utcnow)
+
+    accountinfo_id = columns.Integer(required=True)
+    accountinfo_name = columns.Text(max_length=64)
+    group_name = columns.Text(max_length=64)
+    type = columns.SmallInt(default=0)  # 0: text messages; 1: files
+    content = columns.Text(max_length=256, required=True)
+
+
+# ==============================================================================
+class Messagepin(Model):
+    """Store pinned messages sorted by group, used for message pinning operations \n
+    Primary key: \n ((group_id), time_created) \n
+    with time_created DESC"""
+
+    group_id = columns.UUID(primary_key=True)
+    time_created = columns.DateTime(primary_key=True, clustering_order="DESC", default=datetime.utcnow)
+
+    accountinfo_id = columns.Integer(required=True)
+    accountinfo_name = columns.Text(max_length=64)
+    group_name = columns.Text(max_length=64)
+    type = columns.SmallInt(default=0)  # 0: text messages; 1: files
+    content = columns.Text(max_length=256, required=True)
+
+
+# ==============================================================================
+class Groupattachment(Model):
+    """Store group attachment info, used for normal file operations \n
+    Primary key: \n ((group_id), type, time_created) \n
+    with type DESC, time_created DESC"""
+
+    group_id = columns.UUID(primary_key=True)
+    type = columns.Integer(primary_key=True, clustering_order="DESC", default=0)  # 0: message files; 1: group avatar
+    filename = columns.Text(primary_key=True, clustering_order="DESC")
+
+    time_created = columns.DateTime(default=datetime.utcnow)
 
 
 # ==============================================================================
 def sync_tables():
-    # sync_table(ChatGroup)
-    # sync_table(ChatParticipantByAccount)
-    # sync_table(ChatParticipantByChatGroup)
-    # sync_table(ChatMessage)
-    pass
+    sync_table(Group)
+    sync_table(GroupByName)
+    sync_table(Groupattachment)
+    sync_table(ParticipantByGroup)
+    sync_table(ParticipantByAccount)
+    sync_table(MessageByGroup)
+    sync_table(MessageByAccount)
+    sync_table(Messagepin)

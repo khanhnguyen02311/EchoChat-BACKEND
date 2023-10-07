@@ -35,25 +35,22 @@ class Base(DeclarativeBase):
 
 # Friend = Table(
 #     "friend", Base.metadata,
-#     Column("accountinfo_id_user", ForeignKey("accountinfo.id"), primary_key=True),
-#     Column("accountinfo_id_friend", ForeignKey("accountinfo.id"), primary_key=True),
+#     Column("accountinfo_id_user", Integer, ForeignKey("accountinfo.id"), primary_key=True),
+#     Column("accountinfo_id_friend", Integer, ForeignKey("accountinfo.id"), primary_key=True)
 # )
-
-Friend = Table(
-    "friend", Base.metadata,
-    Column("accountinfo_id_user", Integer, ForeignKey("accountinfo.id"), primary_key=True),
-    Column("accountinfo_id_friend", Integer, ForeignKey("accountinfo.id"), primary_key=True)
-)
 
 
 # ==============================================================================
 class Account(Base):
+    """Store account's credential info. Used for validating access to application \n
+    Primary key: id \n
+    Foreign key: accountinfo_id -> Accountinfo"""
+
     __tablename__ = 'account'
     id: Mapped[int_PK]
     username: Mapped[str128]  # Mapped without Optional[] is set to nullable = False
     password: Mapped[str128]
     email: Mapped[str128]
-    time_created: Mapped[timestamp]
 
     accountinfo_id: Mapped[Optional[int]] = mapped_column(ForeignKey("accountinfo.id"))
     accountinfo_rel: Mapped[Optional["Accountinfo"]] = relationship(back_populates="account_rel",
@@ -62,11 +59,16 @@ class Account(Base):
 
 # ==============================================================================
 class Accountinfo(Base):
+    """Store user defined information. Used for normal operations with user \n
+    Primary key: id \n
+    Foreign key: accountattachment_id -> Accountattachment"""
+
     __tablename__ = 'accountinfo'
     id: Mapped[int_PK]
     name: Mapped[str_random]
     identifier: Mapped[int_identifier]
     description: Mapped[Optional[str128]]
+    time_created: Mapped[timestamp]
 
     accountattachment_id: Mapped[Optional[int]] = mapped_column(ForeignKey('accountattachment.id'))
     accountattachment_rel: Mapped[Optional['Accountattachment']] = relationship(back_populates="accountinfo_rel",
@@ -75,18 +77,16 @@ class Accountinfo(Base):
     # Account reference
     account_rel: Mapped[Optional["Account"]] = relationship(back_populates='accountinfo_rel')
 
-    friend_rel: Mapped[List["Accountinfo"]] = relationship("Accountinfo", secondary=Friend,
-                                                           primaryjoin="friend.c.accountinfo_id_user == accountinfo.c.id",
-                                                           secondaryjoin="friend.c.accountinfo_id_friend == accountinfo.c.id")
-
-    # friend_rel_right: Mapped[List["Accountinfo"]] = relationship("Accountinfo", secondary=Friend,
-    #                                                              primaryjoin=id == Friend.c.accountinfo_id_friend,
-    #                                                              secondaryjoin=id == Friend.c.accountinfo_id_user,
-    #                                                              back_populates="friend_rel_left")
+    # friend_rel: Mapped[List["Accountinfo"]] = relationship("Accountinfo", secondary=Friend,
+    #                                                        primaryjoin="friend.c.accountinfo_id_user == accountinfo.c.id",
+    #                                                        secondaryjoin="friend.c.accountinfo_id_friend == accountinfo.c.id")
 
 
 # ==============================================================================
 class Accountattachment(Base):
+    """Store user image info & other types of file if needed \n
+    Primary key: id"""
+
     __tablename__ = 'accountattachment'
     id: Mapped[int_PK]
     filename: Mapped[str128]
