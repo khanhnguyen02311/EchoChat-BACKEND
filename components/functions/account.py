@@ -1,5 +1,5 @@
 from typing import Any
-from sqlalchemy import select, or_, update
+from sqlalchemy import select, and_, or_, update
 from sqlalchemy.orm import Session
 from components.storages.postgres_models import Account, Accountinfo
 from components.storages.postgres_schemas import AccountSchemaPOST, AccountinfoSchemaPUT
@@ -51,10 +51,20 @@ def handle_authenticate_account(session: Session, username_or_email: str, passwo
         return str(e), None
 
 
-def handle_edit_accountinfo(session: Session, account_token: Accountinfo, accountinfo_new: AccountinfoSchemaPUT) -> Any:
+def handle_edit_accountinfo(session: Session, accountinfo_token: Accountinfo,
+                            accountinfo_new: AccountinfoSchemaPUT) -> Any:
+    """Check and update existing Accountinfo. Return error if needed. \n
+    Return: (error)"""
 
     try:
-        accountinfo_update = update(Accountinfo).where(Accountinfo.id == account_token.id).values(
+        if accountinfo_new.name != accountinfo_token.name or accountinfo_new.identifier != accountinfo_token.identifier:
+            existed_name_identifier_query = select(Accountinfo).where(
+                and_(Accountinfo.name == accountinfo_new.name, Accountinfo.identifier == accountinfo_new.identifier))
+            existed_user = session.scalar(existed_name_identifier_query)
+            if existed_user is not None:
+                return "User with similar name & identify number existed. You should change identify number or your name."
+
+        accountinfo_update = update(Accountinfo).where(Accountinfo.id == accountinfo_token.id).values(
             **accountinfo_new.model_dump()
         )
         session.execute(accountinfo_update)
