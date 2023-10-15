@@ -92,7 +92,7 @@ class MessageByGroup(Model):
 
 
 # ==============================================================================
-class Messagepin(Model):
+class MessagePinned(Model):
     """Store pinned messages sorted by group, used for message pinning operations \n
     Primary key: \n ((group_id), time_created) \n
     with time_created DESC"""
@@ -105,6 +105,7 @@ class Messagepin(Model):
     group_name = columns.Text(max_length=64)
     type = columns.SmallInt(default=0)  # 0: text messages; 1: files
     content = columns.Text(max_length=256, required=True)
+    time_pinned = columns.DateTime(default=datetime.utcnow)
 
 
 # ==============================================================================
@@ -129,4 +130,4 @@ def sync_tables():
     sync_table(ParticipantByAccount)
     sync_table(MessageByGroup)
     sync_table(MessageByAccount)
-    sync_table(Messagepin)
+    sync_table(MessagePinned)
