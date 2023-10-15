@@ -27,6 +27,7 @@ profile = ExecutionProfile(
 )
 connection.setup(['127.0.0.1'], Scylla.DB_KEYSPACE,
                  execution_profiles={EXEC_PROFILE_DEFAULT: profile}, port=Scylla.DB_PORT)
+# connection.execute(f"DROP KEYSPACE IF EXISTS {Scylla.DB_KEYSPACE}")
 connection.execute(
     f"CREATE KEYSPACE IF NOT EXISTS {Scylla.DB_KEYSPACE} WITH replication = " +
     f"{{'class': 'NetworkTopologyStrategy', 'replication_factor': {Scylla.DB_REPLICATION_FACTOR}}}")
