@@ -1,0 +1,19 @@
+FROM ubuntu:22.04
+
+WORKDIR /app
+
+COPY requirements.txt ./
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    libev4 \
+    libev-dev \
+    python3-pip
+
+RUN pip install --upgrade pip && pip install --no-cache-dir --verbose -r requirements.txt
+
+COPY . .
+
+CMD python3 main.py --stage staging --debug False
+

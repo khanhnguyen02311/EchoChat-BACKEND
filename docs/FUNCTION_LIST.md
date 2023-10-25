@@ -3,9 +3,9 @@
 - [ ] Sign up, sign in, logout
     - [x] Manual with user/pass
     - [ ] Facebook, Google
-- [ ] Edit user information:
-    - [ ] Edit name, username, password, email
-    - [ ] Edit avatar, description
+- [ ] Get/set user information:
+    - [x] Name, username, password, email, description
+    - [ ] Avatar image
 - [ ] ~~Add friend, remove friend~~ ***(OPTIONAL)***
 - [ ] Join public groups
 - [ ] See private group invitation

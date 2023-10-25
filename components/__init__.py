@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from components.API import super_hub
-from components.storages import postgres_models
 from configurations import conf
 
 

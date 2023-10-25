@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel
 
-from components.storages import PostgresSession, postgres_schemas as p_schemas
+from components.storages import PostgresSession
+from components.storages.schemas import postgres_schemas as p_schemas
 from components.functions.account import handle_create_account
 
 router = APIRouter()

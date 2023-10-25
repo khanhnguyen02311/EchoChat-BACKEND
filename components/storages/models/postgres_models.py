@@ -5,16 +5,17 @@ from datetime import datetime
 from typing import Annotated, Optional, List
 from sqlalchemy import ForeignKey, types, Table, Column, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship, DeclarativeBase
+from components.utilities import generator
 
 # declare datatypes
 str16 = Annotated[str, None]
 str64 = Annotated[str, None]
 str128 = Annotated[str, None]
 str256 = Annotated[str, None]
-str_random = Annotated[str, mapped_column(default=''.join(random.choices(string.ascii_letters + string.digits, k=16)))]
+str_random = Annotated[str, mapped_column(default=generator.random_name)]
 
 smallint = Annotated[int, None]
-int_identifier = Annotated[int, mapped_column(default=random.randint(1, 9999))]
+int_identifier = Annotated[int, mapped_column(default=generator.random_identifier)]
 int_PK = Annotated[int, mapped_column(primary_key=True)]
 
 timestamp = Annotated[datetime, mapped_column(default=datetime.utcnow)]

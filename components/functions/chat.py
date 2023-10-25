@@ -1,50 +1,101 @@
-from components.storages import scylla_models as s_models
+import uuid
+from datetime import datetime
+from typing import Any
+from components.storages import ScyllaSession as session
+from components.storages.models import scylla_models as s_models, postgres_models as p_models
+from components.storages.schemas import scylla_schemas as s_schemas
 
 
-def handle_create_new_participant(group_id, account_id) -> tuple[
-    s_models.ParticipantByAccount, s_models.ParticipantByGroup]:
+def handle_check_existed_participant(group_id: uuid.UUID, accountinfo_id: int) -> \
+        tuple[bool, s_models.ParticipantByGroup | None]:
+    # check participant existence
+    participant = s_models.ParticipantByGroup.objects.filter(group_id=group_id).filter(
+        accountinfo_id=accountinfo_id).allow_filtering().first()
+    if participant is not None:
+        return True, participant
+    return False, None
 
-    new_participant_by_account = s_models.ParticipantByAccount.create(
-        notify=True,
-        id_account=account_id,
-        id_chatgroup=group_id
+
+def handle_add_new_participant(group_id: uuid.UUID,
+                               accountinfo_id: int,
+                               group_name: str = None,
+                               accountinfo_name: str = None,
+                               role: str = None,
+                               time: datetime = datetime.utcnow(),
+                               with_notification: bool = False) -> \
+        tuple[Any, s_models.ParticipantByGroup | None]:
+
+    # check if participant exists
+    if handle_check_existed_participant(group_id, accountinfo_id)[0]:
+        return f"User {accountinfo_name} already existed in group", None
+
+    new_participant_by_group = s_models.ParticipantByGroup.create(
+        group_id=group_id,
+        time_created=time,
+        accountinfo_id=accountinfo_id,
+        role=role if role is not None else s_models.CONST.Participant_role[0]
     )
-    new_participant_by_chat_group = s_models.ParticipantByGroup.create(
-        notify=True,
-        id_account=account_id,
-        id_chatgroup=group_id
-    )
-    return new_participant_by_account, new_participant_by_chat_group
+    if with_notification:
+        s_models.ParticipantByAccount.create(
+            accountinfo_id=accountinfo_id,
+            group_id=group_id,
+            last_updated=time,
+            role=role if role is not None else s_models.CONST.Participant_role[0]
+        )
+        s_models.MessageByGroup.create(
+            group_id=group_id,
+            accountinfo_id=accountinfo_id,
+            group_name=group_name,
+            accountinfo_name=accountinfo_name,
+            type=s_models.CONST.Message_type[2],
+            content=f"User {accountinfo_name} has joined group."
+        )
+    return None, new_participant_by_group
 
 
-def handle_create_new_group(account_id_list):
-    new_group = s_models.Group.create(name="Temporary")
-    for account_id in account_id_list:
-        handle_create_new_participant(new_group.id, account_id)
-    return new_group
+def handle_create_new_group(group_info: s_schemas.GroupPOST, list_accountinfo: list[p_models.Accountinfo]) -> \
+        tuple[Any, s_models.Group | None]:
+
+    new_group = s_models.Group.create(**group_info.model_dump())
+    error_list = []
+    # group owner should be the first id in list
+    error, _ = handle_add_new_participant(new_group.id, list_accountinfo[0].id, group_name=group_info.name,
+                                          accountinfo_name=list_accountinfo[0].name,
+                                          role=s_models.CONST.Participant_role[2],
+                                          with_notification=True)
+    for accountinfo in list_accountinfo[1:]:
+        error, _ = handle_add_new_participant(new_group.id, accountinfo.id, group_name=group_info.name,
+                                              accountinfo_name=list_accountinfo[0].name, with_notification=True)
+        if error is not None:
+            error_list.append(error)
+
+    return None if len(error_list) == 0 else error_list, new_group
 
 
-def handle_get_participants_by_account(account_id):
-    return s_models.ParticipantByAccount.objects.filter(id_account=account_id).all()
+def handle_get_group_with_message(_group_id):
+    group = s_models.Group.objects.filter(id=_group_id).first()
 
 
-def handle_get_participants_by_group(group_id):
-    return s_models.ParticipantByGroup.objects.filter(id_chatgroup=group_id).all()
+def handle_get_personal_groups(accountinfo_id: int):
+    participant_query = session.execute(
+        f"select last_updated, group_id from participant_by_account where accountinfo_id={accountinfo_id} group by group_id")
+    participant_query = sorted(participant_query, key=lambda query_row: query_row['last_updated'], reverse=True)
+
+    message_list = []
+    for row in participant_query:
+        # group_query = session.execute(f"select * from group where id={row['group_id']}").one()
+        group_last_message = session.execute(
+            f"select * from message_by_group where group_id={row['group_id']} limit 1").one()
+        message_list.append(group_last_message)
+
+    return message_list
 
 
-def handle_get_participant_by_account_and_group(account_id, group_id):
-    valid_participant = s_models.ParticipantByAccount.objects \
-        .filter(id_account=account_id) \
-        .filter(id_chatgroup=group_id) \
-        .first()
-    return valid_participant
-
-
-def handle_add_message(account_id, group_id, content):
-    valid_participant = handle_get_participant_by_account_and_group(account_id, group_id)
-    if valid_participant is not None:
+def handle_add_group_message(accountinfo_id, group_id, content):
+    existed, participant = handle_check_existed_participant(group_id, accountinfo_id)
+    if existed:
         new_message = s_models.MessageByGroup.create(text=content,
                                                      id_chatgroup=group_id,
-                                                     id_chatparticipant=valid_participant.id)
+                                                     id_chatparticipant=participant.id)
         return new_message
     return None

@@ -3,13 +3,13 @@ from datetime import timedelta, datetime
 from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import jwt, JWTError
+from jose import jwt
 from passlib.context import CryptContext
 from sqlalchemy import select
 from pydantic import BaseModel, ConfigDict
 from configurations.conf import Env
 from components.storages import PostgresSession, RedisSession
-from components.storages.postgres_models import Account, Accountinfo
+from components.storages.models.postgres_models import Account, Accountinfo
 
 pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin", scheme_name="JWT")
@@ -70,9 +70,9 @@ def handle_create_refresh_token(user: Account) -> str:
     return _create_token(user, "refresh")
 
 
-def handle_get_current_user(access_token: str) -> Accountinfo:
+def handle_get_current_user(access_token: str, query_type="Account") -> Account | Accountinfo:
     """Return the decoded user info from the input access token. Raise error if needed. \n
-        Return values: (decoded accountinfo)"""
+        Return values: (account or accountinfo)"""
     try:
         payload = _decode_token(access_token)
         if payload.get("typ_token") == "refresh":
@@ -80,11 +80,15 @@ def handle_get_current_user(access_token: str) -> Accountinfo:
 
         user = payload.get("sub")
         with PostgresSession.begin() as session:
-            accountinfo_query = select(Accountinfo).where(Accountinfo.id == user.get("accountinfo_id"))
-            user = session.scalar(accountinfo_query)
+            if query_type == "Account":
+                user_query = select(Account).where(Account.id == user.get("id"))
+            else:
+                user_query = select(Accountinfo).where(Accountinfo.id == user.get("accountinfo_id"))
+            user = session.scalar(user_query)
             if user is None:
                 raise Exception("User not found")
             session.expunge_all()
+            print(user)
             return user
 
     except Exception as e:
@@ -92,11 +96,18 @@ def handle_get_current_user(access_token: str) -> Accountinfo:
                             detail=str(e))
 
 
-def handle_get_current_user_oauth2(access_token: Annotated[str, Depends(oauth2_scheme)]) -> Accountinfo:
-    """Return the decoded user info from the OAuth2 access token. Raise error if needed. \n
-    Return values: (decoded accountinfo)"""
+def handle_get_current_account(access_token: Annotated[str, Depends(oauth2_scheme)]) -> Account:
+    """Return the decoded user info from the Bearer access token. Raise error if needed. \n
+    Return values: (account)"""
 
-    return handle_get_current_user(access_token)
+    return handle_get_current_user(access_token, "Account")
+
+
+def handle_get_current_accountinfo(access_token: Annotated[str, Depends(oauth2_scheme)]) -> Accountinfo:
+    """Return the decoded user info from the Bearer access token. Raise error if needed. \n
+    Return values: (accountinfo)"""
+
+    return handle_get_current_user(access_token, "Accountinfo")
 
 
 def handle_renew_access_token(refresh_token: Annotated[str, Depends(oauth2_scheme)]) -> str | None:
