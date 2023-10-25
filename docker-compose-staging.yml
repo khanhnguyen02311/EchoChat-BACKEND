@@ -1,0 +1,71 @@
+version: "4"
+
+services:
+  staging-app:
+    build:
+      context: .
+      dockerfile: Dockerfile-staging
+    env_file:
+      - .env.staging
+    restart: unless-stopped
+    ports:
+      - "30010:8000"
+    networks:
+      - staging-network-1
+
+  staging-postgres:
+    image: postgres:15
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      - 'POSTGRES_DB=${POSTGRES_DB}'
+      - 'POSTGRES_USER=${POSTGRES_USR}'
+      - 'POSTGRES_PASSWORD=${POSTGRES_PWD}'
+    networks:
+      - staging-network-1
+
+  staging-redis:
+    image: redis:7
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    command: 'redis-server --save 60 1 --loglevel warning --requirepass ${REDIS_PWD}'
+    networks:
+      - staging-network-1
+
+  staging-scylla-1:
+    image: scylladb/scylla
+    container_name: staging-scylla-1
+    restart: unless-stopped
+    ports:
+      - '9042:9042'
+    #    volumes:
+    #      - "./scylla/scylla.yaml:/etc/scylla/scylla.yaml"
+    #      - "./scylla/cassandra-rackdc.properties.dc1:/etc/scylla/cassandra-rackdc.properties"
+    #      - "./scylla/mutant-data.txt:/mutant-data.txt"
+    command: --smp 1 --memory 1G --overprovisioned 1
+    networks:
+      - staging-network-1
+
+#  staging-scylla-2:
+#    image: scylladb/scylla
+#    container_name: staging-scylla-2
+#    restart: unless-stopped
+#    #    volumes:
+#    #      - "./scylla/scylla.yaml:/etc/scylla/scylla.yaml"
+#    #      - "./scylla/cassandra-rackdc.properties.dc1:/etc/scylla/cassandra-rackdc.properties"
+#    command: --smp 1 --memory 1G --overprovisioned 1 --seeds=staging-scylla-1
+#
+#  staging-scylla-3:
+#    image: scylladb/scylla
+#    container_name: staging-scylla-3
+#    restart: unless-stopped
+#    #    volumes:
+#    #      - "./scylla/scylla.yaml:/etc/scylla/scylla.yaml"
+#    #      - "./scylla/cassandra-rackdc.properties.dc1:/etc/scylla/cassandra-rackdc.properties"
+#    command: --smp 1 --memory 1G --overprovisioned 1 --seeds=staging-scylla-1
+
+networks:
+  staging-network-1:
+    driver: bridge

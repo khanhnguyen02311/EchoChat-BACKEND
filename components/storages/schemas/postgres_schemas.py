@@ -1,20 +1,7 @@
 from datetime import datetime
 from typing import List
-from pydantic import BaseModel, RootModel, ConfigDict, conint, constr
-
-
-class BaseORMModel(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-
-class BaseListModel(RootModel):
-    root: List[BaseORMModel]
-
-    def __iter__(self):
-        return iter(self.root)
-
-    def __getitem__(self, item):
-        return self.root[item]
+from pydantic import conint, constr
+from . import BaseORMModel, BaseListModel
 
 
 class AccountinfoSchemaGET(BaseORMModel):
@@ -33,7 +20,7 @@ class ListAccountinfoSchemaGET(BaseListModel):
 class AccountinfoSchemaPUT(BaseORMModel):
     name: constr(max_length=64)
     identifier: conint(ge=0, le=9999)
-    description: constr(max_length=128) | None
+    description: constr(max_length=128) | None = None
 
 
 class AccountSchemaGET(BaseORMModel):

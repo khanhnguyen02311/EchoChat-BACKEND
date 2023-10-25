@@ -2,11 +2,6 @@ from os import environ
 
 
 class Env:
-    PS_DB = environ.get("POSTGRES_DB")
-    PS_USR = environ.get("POSTGRES_USR")
-    PS_PWD = environ.get("POSTGRES_PWD")
-    PS_PORT = int(environ.get("POSTGRES_PORT"))
-
     APP_PORT = int(environ.get("APP_PORT"))
     APP_FRONTEND_URL = environ.get("APP_FRONTEND_URL")
     APP_DEBUG = bool(environ.get("APP_DEBUG"))
@@ -18,7 +13,12 @@ class Env:
 
 
 class Postgres:
-    DB_URL = f"postgresql+psycopg2://{Env.PS_USR}:{Env.PS_PWD}@localhost:{Env.PS_PORT}/{Env.PS_DB}?sslmode=disable"
+    DB_HOST = environ.get("POSTGRES_HOST")
+    DB_DB = environ.get("POSTGRES_DB")
+    DB_USR = environ.get("POSTGRES_USR")
+    DB_PWD = environ.get("POSTGRES_PWD")
+    DB_PORT = int(environ.get("POSTGRES_PORT"))
+    DB_URL = f"postgresql+psycopg2://{DB_USR}:{DB_PWD}@{DB_HOST}:{DB_PORT}/{DB_DB}?sslmode=disable"
 
 
 class SQLAlchemy:
@@ -31,11 +31,13 @@ class SQLAlchemy:
 
 
 class Redis:
+    DB_HOST = environ.get("REDIS_HOST")
     DB_PORT = int(environ.get("REDIS_PORT"))
     DB_PWD = environ.get("REDIS_PWD")
 
 
 class Scylla:
+    DB_HOST = environ.get("SCYLLA_HOST")
     DB_PORT = int(environ.get("SCYLLA_PORT"))
     DB_KEYSPACE = environ.get("SCYLLA_KEYSPACE")
     DB_REPLICATION_FACTOR = int(environ.get("SCYLLA_REPLICATION_FACTOR"))

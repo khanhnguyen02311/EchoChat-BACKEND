@@ -4,7 +4,9 @@ from sqlalchemy import select
 
 from components.functions.security import handle_get_current_account, handle_get_current_accountinfo
 from components.functions.account import handle_edit_accountinfo
-from components.storages import PostgresSession, postgres_models as p_models, postgres_schemas as p_schemas
+from components.storages import PostgresSession
+from components.storages.schemas import postgres_schemas as p_schemas
+from components.storages.models import postgres_models as p_models
 
 router = APIRouter()
 

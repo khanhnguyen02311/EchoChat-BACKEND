@@ -1,0 +1,37 @@
+# "docker compose -f docker-compose-dev.yml --env-file .env.dev config"         to check the compose configs
+# "docker compose -f docker-compose-dev.yml --env-file .env.dev up -d"          to run the compose file
+# "docker compose -f docker-compose-dev.yml --env-file .env.dev stop"           to stop the containers
+# "docker compose -f docker-compose-dev.yml --env-file .env.dev down --volumes" to remove the containers & networks & data volumes
+
+# "docker exec -it <container-name> /bin/bash" to connect to container
+# "psql -h localhost -d testdb1 -U testuser1" inside postgres container
+# "cqlsh" inside scylla container
+
+
+version: '4'
+
+services:
+  dev-postgres:
+    image: postgres:15
+    restart: no
+    ports:
+      - '5432:5432'  # external:internal
+    environment:
+      - 'POSTGRES_DB=${POSTGRES_DB}'
+      - 'POSTGRES_USER=${POSTGRES_USR}'
+      - 'POSTGRES_PASSWORD=${POSTGRES_PWD}'
+  #    command: '-p ${POSTGRES_PORT}'
+
+  dev-redis:
+    image: redis:7
+    restart: no
+    ports:
+      - '6379:6379'
+    command: 'redis-server --save 60 1 --loglevel warning --requirepass ${REDIS_PWD}'
+
+  dev-scylla:
+    image: scylladb/scylla
+    restart: no
+    ports:
+      - '9042:9042'
+    command: --developer-mode 1 --smp 1 --memory 1G --overprovisioned 1

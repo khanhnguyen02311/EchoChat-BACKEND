@@ -1,8 +1,8 @@
 from typing import Any
 from sqlalchemy import select, and_, or_, update
 from sqlalchemy.orm import Session
-from components.storages.postgres_models import Account, Accountinfo
-from components.storages.postgres_schemas import AccountSchemaPOST, AccountinfoSchemaPUT
+from components.storages.models.postgres_models import Account, Accountinfo
+from components.storages.schemas.postgres_schemas import AccountSchemaPOST, AccountinfoSchemaPUT
 from components.functions import security
 
 
