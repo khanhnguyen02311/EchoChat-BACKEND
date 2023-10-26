@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from components.API import super_hub
 from configurations import conf
+from components.API import super_hub
 
 
 def create_app(debug: bool):
