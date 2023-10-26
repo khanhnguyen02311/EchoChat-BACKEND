@@ -10,6 +10,12 @@ services:
     env_file:
       - .env.staging
     restart: unless-stopped
+    depends_on:
+      - db-postgres
+      - db-redis
+      - db-scylla-1
+      - db-scylla-2
+      - db-scylla-3
     ports:
       - "30010:8000"
     networks:
@@ -34,7 +40,7 @@ services:
       - '6379:6379'
     command: 'redis-server --save 60 1 --loglevel warning --requirepass ${REDIS_PWD}'
     networks:
-      - staging-network-1
+      - network-1
 
   db-scylla-1:
     image: scylladb/scylla
@@ -52,6 +58,8 @@ services:
   db-scylla-2:
     image: scylladb/scylla
     restart: unless-stopped
+    depends_on:
+      - db-scylla-1
     ports:
       - '9043:9042'
     #    volumes:
@@ -64,6 +72,8 @@ services:
   db-scylla-3:
     image: scylladb/scylla
     restart: unless-stopped
+    depends_on:
+      - db-scylla-1
     ports:
       - '9044:9042'
     #    volumes:
