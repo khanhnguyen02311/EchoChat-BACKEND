@@ -7,6 +7,6 @@ parser.add_argument("--debug", help="application debug mode (True/False), defaul
 args = parser.parse_args()
 
 if args.stage not in ["dev", "staging", "prod"]:
-    parser.error("--stage: Invalid argument value.")
+    parser.error("--stage: Invalid argument value (dev/staging/prod).")
 
 load_dotenv(dotenv_path=f'.env.{args.stage}', verbose=True)

@@ -1,10 +1,12 @@
 from os import environ
+from arguments import args
 
 
 class Env:
     APP_PORT = int(environ.get("APP_PORT"))
     APP_FRONTEND_URL = environ.get("APP_FRONTEND_URL")
     APP_DEBUG = bool(environ.get("APP_DEBUG"))
+    APP_STAGE = args.stage
 
     SCR_JWT_SECRET_KEY = environ.get("SECURITY_JWT_SECRET_KEY")
     SCR_JWT_ALGORITHM = "HS256"

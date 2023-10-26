@@ -1,5 +1,5 @@
 import redis
-from cassandra.cluster import ExecutionProfile, EXEC_PROFILE_DEFAULT, ConsistencyLevel
+from cassandra.cluster import ExecutionProfile, EXEC_PROFILE_DEFAULT, ConsistencyLevel, Session
 from cassandra.policies import WhiteListRoundRobinPolicy
 from cassandra.cqlengine import connection
 from cassandra.query import tuple_factory
