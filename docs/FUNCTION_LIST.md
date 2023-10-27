@@ -7,12 +7,12 @@
     - [x] Name, username, password, email, description
     - [ ] Avatar image
 - [ ] ~~Add friend, remove friend~~ ***(OPTIONAL)***
-- [ ] Join public groups
+- [x] Join public groups
 - [ ] See private group invitation
 - [ ] Leave groups
-- [ ] Create group chat
+- [x] Create group chat
 - [ ] Gain admin in created group chat
-- [ ] See group messages, group participants
+- [x] See group messages, group participants
 - [ ] Send messages to groups
     - [ ] Text message, links
     - [ ] Icons, emojis
