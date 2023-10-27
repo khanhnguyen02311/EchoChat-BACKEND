@@ -6,9 +6,23 @@ from components.storages.models import scylla_models as s_models, postgres_model
 from components.storages.schemas import scylla_schemas as s_schemas
 
 
+def handle_check_existed_group(group_id: uuid.UUID,
+                               allow_private_groups: bool = False) -> tuple[bool, s_models.Group | None]:
+    """Check if group already existed\n
+    Return: (result, group_item)"""
+
+    existed_group = s_models.Group.objects.filter(id=group_id).first()
+    if existed_group is None:
+        return False, None
+    if not allow_private_groups and existed_group.visibility is False:
+        return False, None
+
+    return True, existed_group
+
+
 def handle_check_joined_participant(group_id: uuid.UUID, accountinfo_id: int) -> \
         tuple[bool, s_models.ParticipantByGroup | None]:
-    """Check if user already joined group. Return True/False result \n
+    """Check if user already joined group\n
     Return: (result, participant_item)"""
 
     participant = s_models.ParticipantByGroup.objects.filter(group_id=group_id).filter(
@@ -59,7 +73,9 @@ def handle_add_new_participant(group_id: uuid.UUID,
 
 
 def handle_create_new_group(group_info: s_schemas.GroupPOST, list_accountinfo: list[p_models.Accountinfo]) -> \
-        tuple[Any, s_models.Group | None]:
+        tuple[list[str] | None, s_models.Group | None]:
+    """Create new group and participant(s) for that group. Return error list if existed.\n
+    Return: (error_list, group_item)"""
 
     new_group = s_models.Group.create(**group_info.model_dump())
     error_list = []
@@ -78,7 +94,10 @@ def handle_create_new_group(group_info: s_schemas.GroupPOST, list_accountinfo: l
     return None if len(error_list) == 0 else error_list, new_group
 
 
-def handle_get_personal_groups(accountinfo_id: int):
+def handle_get_personal_groups(accountinfo_id: int) -> list:
+    """Get all joined groups and most recent messages\n
+    Return: (message_list)"""
+    
     participant_query = session.execute(
         f"select last_updated, group_id from participant_by_account where accountinfo_id={accountinfo_id} group by group_id")
     participant_query = sorted(participant_query, key=lambda query_row: query_row['last_updated'], reverse=True)
@@ -91,13 +110,3 @@ def handle_get_personal_groups(accountinfo_id: int):
         message_list.append(group_last_message)
 
     return message_list
-
-
-def handle_add_group_message(accountinfo_id, group_id, content):
-    existed, participant = handle_check_joined_participant(group_id, accountinfo_id)
-    if existed:
-        new_message = s_models.MessageByGroup.create(text=content,
-                                                     id_chatgroup=group_id,
-                                                     id_chatparticipant=participant.accountinfo_id)
-        return new_message
-    return None

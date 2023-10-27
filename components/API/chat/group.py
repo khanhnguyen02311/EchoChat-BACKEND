@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from components.functions.security import handle_get_current_accountinfo
 from components.functions.group import handle_create_new_group, handle_get_personal_groups, handle_add_new_participant, \
-    handle_check_joined_participant
+    handle_check_joined_participant, handle_check_existed_group
 from components.storages import PostgresSession
 from components.storages.models import postgres_models as p_models, scylla_models as s_models
 from components.storages.schemas import scylla_schemas as s_schemas, postgres_schemas as p_schemas
@@ -22,36 +22,48 @@ def get_group_list(accountinfo_token: Annotated[p_models.Accountinfo, Depends(ha
 @router.post("/group/create")
 def create_new_group(group_info: s_schemas.GroupPOST,
                      accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
-    # try:
-    list_participant_accountinfo = [accountinfo_token]  # add accounts when create group if needed later
-    error, created_group = handle_create_new_group(group_info, list_participant_accountinfo)
-    if error is not None:
-        raise Exception(error)
-    return created_group
+    try:
+        list_participant_accountinfo = [accountinfo_token]  # add accounts when create group if needed later
+        error_list, created_group = handle_create_new_group(group_info, list_participant_accountinfo)
+        if error_list is not None:
+            raise Exception(str(error_list))
+        return created_group
 
-
-# except Exception as e:
-#     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e)
 
 
 @router.post("/group/join")
 def join_group(group_id: uuid.UUID,
                accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
     try:
-        existed_group = s_models.Group.objects.filter(id=group_id).first()
-        if existed_group is not None:
+        existed, group = handle_check_existed_group(group_id)
+        if existed:
             ## checking group visibility or group invitation notification, leave for later ##
-
+            
             error, new_participant = handle_add_new_participant(group_id, accountinfo_token.id,
-                                                                group_name=existed_group.name,
+                                                                group_name=group.name,
                                                                 accountinfo_name=accountinfo_token.name,
                                                                 with_notification=True)
             if error is not None:
                 raise Exception(error)
             return new_participant
 
+        raise Exception("Group not found")
+
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e)
+
+
+# @router.post("/group/leave")
+# def leave_group(group_id: uuid.UUID,
+#                 accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
+#     try:
+#         if handle_check_joined_participant(group_id, accountinfo_token.id)[0]:
+#             pass
+#
+#     except Exception as e:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
 @router.get("/group/{group_id}/messages")
