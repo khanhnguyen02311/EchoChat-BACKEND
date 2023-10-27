@@ -1,7 +1,8 @@
 import uuid
 from datetime import datetime
-from pydantic import conint, constr
+from pydantic import constr
 from . import BaseORMModel, BaseListModel
+from ..models import scylla_models as s_models
 
 
 class GroupGET(BaseORMModel):
@@ -22,4 +23,10 @@ class ParticipantGET(BaseORMModel):
     group_id: uuid.UUID
     last_updated: datetime
     notify: bool
-    role: int
+    role: str
+
+
+class ParticipantPOST(BaseORMModel):
+    group_id: uuid.UUID
+    accountinfo_id: int
+    role: str = s_models.CONSTANT.Participant_role[0]

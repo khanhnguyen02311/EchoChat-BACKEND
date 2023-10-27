@@ -20,7 +20,7 @@ RedisSession = redis.Redis(host='localhost', port=Redis.DB_PORT, db=0, password=
 # For ScyllaDB
 profile = ExecutionProfile(
     load_balancing_policy=WhiteListRoundRobinPolicy([Scylla.DB_HOST]),
-    consistency_level=ConsistencyLevel.LOCAL_QUORUM,
+    consistency_level=ConsistencyLevel.LOCAL_ONE,
     serial_consistency_level=ConsistencyLevel.LOCAL_SERIAL,
     request_timeout=15,
     row_factory=tuple_factory
