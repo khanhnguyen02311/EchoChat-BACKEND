@@ -6,7 +6,7 @@ from cassandra.cqlengine.management import sync_table
 
 
 # ==============================================================================
-class CONST:
+class CONSTANT:
     Participant_role = ["Participant", "Admin", "Creator"]
     Message_type = ["Message", "File", "Event", "Other"]
     Groupattachment_type = ["Message", "Group"]

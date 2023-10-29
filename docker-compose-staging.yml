@@ -17,7 +17,7 @@ services:
       - db-scylla-2
       - db-scylla-3
     ports:
-      - "127.0.0.1:30010:8000"
+      - "20011:8000"
     networks:
       - network-1
 
