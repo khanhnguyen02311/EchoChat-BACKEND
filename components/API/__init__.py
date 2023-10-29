@@ -28,6 +28,7 @@ super_hub = APIRouter()
 super_hub.include_router(authentication_hub)
 super_hub.include_router(chat_hub)
 super_hub.include_router(user_hub)
+super_hub.include_router(ws_hub)
 
 
 @super_hub.get("/")
