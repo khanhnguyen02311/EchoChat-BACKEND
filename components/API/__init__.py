@@ -4,7 +4,8 @@ from components.storages import ScyllaSession
 # Endpoint-level hubs
 from .authentication import signup, signin, logout, token
 from .user import me, search
-from .chat import group, message
+from .chat import group
+from .ws import ws
 
 authentication_hub = APIRouter(prefix="/auth")
 authentication_hub.include_router(signup.router)
@@ -14,11 +15,13 @@ authentication_hub.include_router(logout.router)
 
 chat_hub = APIRouter(prefix="/chat")
 chat_hub.include_router(group.router)
-chat_hub.include_router(message.router)
 
 user_hub = APIRouter(prefix="/user")
 user_hub.include_router(me.router)
 user_hub.include_router(search.router)
+
+ws_hub = APIRouter(prefix="/ws")
+ws_hub.include_router(ws.router)
 
 # Super hub
 super_hub = APIRouter()
