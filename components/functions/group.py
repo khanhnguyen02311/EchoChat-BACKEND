@@ -1,9 +1,9 @@
 import uuid
 from datetime import datetime
 from typing import Any
-from components.storages import ScyllaSession as session
-from components.storages.models import scylla_models as s_models, postgres_models as p_models
-from components.storages.schemas import scylla_schemas as s_schemas
+from components.data import ScyllaSession as session
+from components.data.models import scylla_models as s_models, postgres_models as p_models
+from components.data.schemas import scylla_schemas as s_schemas
 
 
 def handle_check_existed_group(group_id: uuid.UUID,
@@ -37,7 +37,6 @@ def handle_add_new_participant(group_id: uuid.UUID,
                                role: str = s_models.CONSTANT.Participant_role[0],
                                group_name: str = None,
                                accountinfo_name: str = None,
-                               time: datetime = datetime.utcnow(),
                                with_notification: bool = False) -> \
         tuple[Any, s_models.ParticipantByGroup | None]:
     """Handle adding new participant to group \n
@@ -50,7 +49,6 @@ def handle_add_new_participant(group_id: uuid.UUID,
 
     new_participant_by_group = s_models.ParticipantByGroup.create(
         group_id=group_id,
-        time_created=time,
         accountinfo_id=accountinfo_id,
         role=role
     )
@@ -58,7 +56,6 @@ def handle_add_new_participant(group_id: uuid.UUID,
         s_models.ParticipantByAccount.create(
             accountinfo_id=accountinfo_id,
             group_id=group_id,
-            last_updated=time,
             role=role
         )
         s_models.MessageByGroup.create(
@@ -85,6 +82,9 @@ def handle_create_new_group(group_info: s_schemas.GroupPOST, list_accountinfo: l
                                           group_name=group_info.name,
                                           accountinfo_name=list_accountinfo[0].name,
                                           with_notification=True)
+    if error is not None:
+        error_list.append(error)
+
     for accountinfo in list_accountinfo[1:]:
         error, _ = handle_add_new_participant(new_group.id, accountinfo.id, group_name=group_info.name,
                                               accountinfo_name=list_accountinfo[0].name, with_notification=True)
@@ -97,7 +97,7 @@ def handle_create_new_group(group_info: s_schemas.GroupPOST, list_accountinfo: l
 def handle_get_personal_groups(accountinfo_id: int) -> list:
     """Get all joined groups and most recent messages\n
     Return: (message_list)"""
-    
+
     participant_query = session.execute(
         f"select last_updated, group_id from participant_by_account where accountinfo_id={accountinfo_id} group by group_id")
     participant_query = sorted(participant_query, key=lambda query_row: query_row['last_updated'], reverse=True)

@@ -7,9 +7,9 @@ from sqlalchemy import select
 from components.functions.security import handle_get_current_accountinfo
 from components.functions.group import handle_create_new_group, handle_get_personal_groups, handle_add_new_participant, \
     handle_check_joined_participant, handle_check_existed_group
-from components.storages import PostgresSession
-from components.storages.models import postgres_models as p_models, scylla_models as s_models
-from components.storages.schemas import scylla_schemas as s_schemas, postgres_schemas as p_schemas
+from components.data import PostgresSession
+from components.data.models import postgres_models as p_models, scylla_models as s_models
+from components.data.schemas import scylla_schemas as s_schemas, postgres_schemas as p_schemas
 
 router = APIRouter()
 
@@ -23,11 +23,10 @@ def get_group_list(accountinfo_token: Annotated[p_models.Accountinfo, Depends(ha
 def create_new_group(group_info: s_schemas.GroupPOST,
                      accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
     try:
-        list_participant_accountinfo = [accountinfo_token]  # add accounts when create group if needed later
+        # add multiple accounts when create group, if needed later
+        list_participant_accountinfo = [accountinfo_token]
         error_list, created_group = handle_create_new_group(group_info, list_participant_accountinfo)
-        if error_list is not None:
-            raise Exception(str(error_list))
-        return created_group
+        return {"group": created_group, "errors": error_list}
 
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e)
@@ -40,7 +39,7 @@ def join_group(group_id: uuid.UUID,
         existed, group = handle_check_existed_group(group_id)
         if existed:
             ## checking group visibility or group invitation notification, leave for later ##
-            
+
             error, new_participant = handle_add_new_participant(group_id, accountinfo_token.id,
                                                                 group_name=group.name,
                                                                 accountinfo_name=accountinfo_token.name,
@@ -53,17 +52,6 @@ def join_group(group_id: uuid.UUID,
 
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=e)
-
-
-# @router.post("/group/leave")
-# def leave_group(group_id: uuid.UUID,
-#                 accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
-#     try:
-#         if handle_check_joined_participant(group_id, accountinfo_token.id)[0]:
-#             pass
-#
-#     except Exception as e:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
 @router.get("/group/{group_id}/messages")
@@ -92,8 +80,26 @@ def get_group_participant_list(
                 accountinfo = session.scalar(user_query)
                 result_list.append(
                     {**s_schemas.ParticipantPOST.model_validate(row).model_dump(),
-                     **p_schemas.AccountinfoSchemaGET.model_validate(accountinfo).model_dump()})
+                     **p_schemas.AccountinfoGET.model_validate(accountinfo).model_dump()})
         return result_list
 
     return HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                          detail="You are not a participant of the group")
+
+# ------------------------
+
+# @router.delete("/group/{group_id}/leave")
+# def leave_group(group_id: uuid.UUID,
+#                 accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)])
+
+# @router.delete("/group/{group_id}/delete")
+# def delete_group(group_id: uuid.UUID,
+#                  accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)])
+
+# @router.get("/group/{group_id}/info")
+# def get_group_info(group_id: uuid.UUID,
+#                    accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)])
+
+# @router.post("/group/{group_id}/info")
+# def set_group_info(group_id: uuid.UUID,
+#                    accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)])
