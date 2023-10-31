@@ -1,5 +1,5 @@
 from typing import List
-from pydantic import BaseModel, RootModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, RootModel
 
 
 class BaseORMModel(BaseModel):

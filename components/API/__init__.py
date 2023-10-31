@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from configurations.conf import Env
-from components.storages import ScyllaSession
+from components.data import ScyllaSession
 # Endpoint-level hubs
 from .authentication import signup, signin, logout, token
 from .user import me, search

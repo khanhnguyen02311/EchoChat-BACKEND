@@ -1,24 +1,30 @@
 ### Users:
 
-- [ ] Sign up, sign in, logout
+- [ ] Sign up, sign in
     - [x] Manual with user/pass
     - [ ] Facebook, Google
-- [ ] Get/set user information:
+- [x] Logout
+- [ ] Forgot password
+- [x] Renew access token
+- [ ] Get/set user information
     - [x] Name, username, password, email, description
     - [ ] Avatar image
 - [ ] ~~Add friend, remove friend~~ ***(OPTIONAL)***
-- [x] Join public groups
+- [x] Join public group
 - [ ] See private group invitation
-- [ ] Leave groups
-- [x] Create group chat
-- [ ] Gain admin in created group chat
-- [x] See group messages, group participants
-- [ ] Send messages to groups
-    - [ ] Text message, links
-    - [ ] Icons, emojis
-    - [ ] Images & files
-- [ ] Send auto-remove messages
-- [ ] Pin / unpin messages
+- [ ] Leave group
+- [x] Create new group
+- [ ] See group messages, group participants, group information
+- [ ] Send messages to group
+    - [x] Text message, link
+    - [ ] Icon, emoji
+    - [ ] Image & file
+- [ ] Send auto-remove message
+- [ ] Pin / unpin message
+- [ ] Delete message
+- [ ] Receive notifications
+    - [ ] New messages
+    - [ ] New group invitations
 - [ ] Change group notification setting
 - [ ] Show activity status & see others status
 - [ ] ~~Send global messages (simpler Facebook stories)~~ ***(OPTIONAL)***
@@ -26,9 +32,14 @@
 
 ### Group admins:
 
-- [ ] Set group description, group image / color
-- [ ] Change group's visibility (public / private)
-- [ ] Add people to group
+- [ ] Edit group information
+    - [ ] Group name, description
+    - [ ] Group image
+    - [ ] Group's visibility (public / private)
+- [ ] Add/remove participant from group
+
+### Group creators:
+
 - [ ] Grant, revoke admin group permission
 - [ ] Delete group
 
