@@ -1,26 +1,26 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException, WebSocketException, status
+from fastapi import APIRouter, WebSocketDisconnect, WebSocketException, status
 
-from components.functions.connection import ConnectionManager
+from components.utilities.connection_manager import ConnectionManager
 from components.functions.security import handle_get_current_accountinfo
+from components.utilities.websocket import CustomWebSocket
 
 router = APIRouter()
 manager = ConnectionManager()
 
 
 @router.websocket("/connect")
-async def chat_endpoint(websocket: WebSocket, token: str):
+async def chat_endpoint(websocket: CustomWebSocket, token: str):
     try:
         accountinfo = handle_get_current_accountinfo(token)
-    except HTTPException as e:
-        raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION, reason=e.detail)
+    except Exception as e:
+        raise WebSocketException(code=status.WS_1008_POLICY_VIOLATION, reason=str(e))
     # if self.active_connections.get(account.id) is not None: # implement later
 
-    await manager.connect(websocket)
-    # await manager.send_personal_message("Account connect successfully.", websocket)
+    await manager.connect(websocket, accountinfo)
     try:
         while True:
-            data = await websocket.receive_json()
-            await manager.read_message(accountinfo, data, websocket)
+            new_message = await websocket.receive_json()
+            await manager.read_conn_message(websocket, new_message)
 
     except WebSocketDisconnect:
         manager.disconnect(websocket)
