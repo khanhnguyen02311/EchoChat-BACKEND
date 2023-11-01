@@ -10,8 +10,8 @@ from .ws import ws
 authentication_hub = APIRouter(prefix="/auth")
 authentication_hub.include_router(signup.router)
 authentication_hub.include_router(signin.router)
-authentication_hub.include_router(token.router)
 authentication_hub.include_router(signout.router)
+authentication_hub.include_router(token.router)
 
 chat_hub = APIRouter(prefix="/chat")
 chat_hub.include_router(group.router)
@@ -32,7 +32,7 @@ super_hub.include_router(ws_hub)
 
 
 @super_hub.get("/")
-def default():
+def application_info():
     # with PostgresSession() as session:
     #     postgres_mains = session.execute(text("SELECT client_addr, state FROM pg_stat_replication;")).scalars()
     #     session.close()

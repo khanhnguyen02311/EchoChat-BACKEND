@@ -12,7 +12,7 @@ router = APIRouter(prefix="/me")
 
 
 @router.get("/info/get")
-async def get_info(account_token: Annotated[p_models.Account, Depends(handle_get_current_account)]):
+async def get_user_info(account_token: Annotated[p_models.Account, Depends(handle_get_current_account)]):
     print(account_token.accountinfo_id)
     with PostgresSession() as session:
         accountinfo_query = select(p_models.Accountinfo).where(p_models.Accountinfo.id == account_token.accountinfo_id)
@@ -25,8 +25,8 @@ async def get_info(account_token: Annotated[p_models.Account, Depends(handle_get
 
 
 @router.post("/info/set")
-async def edit_user(accountinfo_new: p_schemas.AccountinfoPUT,
-                    accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
+async def set_user_info(accountinfo_new: p_schemas.AccountinfoPUT,
+                        accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
     with PostgresSession.begin() as session:
         error = handle_edit_accountinfo(session, accountinfo_token, accountinfo_new)
         if error is not None:
@@ -36,10 +36,10 @@ async def edit_user(accountinfo_new: p_schemas.AccountinfoPUT,
 
 
 @router.get("/avatar/get")
-async def get_avatar(token_account: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
+async def get_user_avatar(token_account: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
     pass
 
 
 @router.post("/avatar/set")
-async def set_avatar(token_account: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
+async def set_user_avatar(token_account: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
     pass
