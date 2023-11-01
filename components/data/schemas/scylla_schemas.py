@@ -6,8 +6,9 @@ from ..models import scylla_models as s_models
 
 
 class GroupGET(BaseORMModel):
+    id: uuid.UUID
     name: str
-    description: str
+    description: str | None
     visibility: bool
     time_created: datetime
 
