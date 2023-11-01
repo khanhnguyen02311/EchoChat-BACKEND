@@ -8,10 +8,10 @@ from components.data import PostgresSession
 from components.data.schemas import postgres_schemas as p_schemas
 from components.data.models import postgres_models as p_models
 
-router = APIRouter()
+router = APIRouter(prefix="/me")
 
 
-@router.get("/me/info/get")
+@router.get("/info/get")
 async def get_info(account_token: Annotated[p_models.Account, Depends(handle_get_current_account)]):
     print(account_token.accountinfo_id)
     with PostgresSession() as session:
@@ -24,7 +24,7 @@ async def get_info(account_token: Annotated[p_models.Account, Depends(handle_get
             **p_schemas.AccountinfoGET.model_validate(accountinfo).model_dump()}
 
 
-@router.post("/me/info/set")
+@router.post("/info/set")
 async def edit_user(accountinfo_new: p_schemas.AccountinfoPUT,
                     accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
     with PostgresSession.begin() as session:
@@ -35,11 +35,11 @@ async def edit_user(accountinfo_new: p_schemas.AccountinfoPUT,
         return "Done"
 
 
-@router.get("/me/avatar/get")
+@router.get("/avatar/get")
 async def get_avatar(token_account: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
     pass
 
 
-@router.post("/me/avatar/set")
+@router.post("/avatar/set")
 async def set_avatar(token_account: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
     pass
