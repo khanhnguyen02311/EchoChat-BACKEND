@@ -1,6 +1,5 @@
-import json
-from pprint import pprint
-from datetime import datetime
+import asyncio
+import pprint
 import uuid
 from enum import Enum
 from typing import Any
@@ -9,6 +8,7 @@ from components.utilities.websocket import CustomWebSocket
 from components.data.models import scylla_models as s_models, postgres_models as p_models
 from components.data.schemas import scylla_schemas as s_schemas, postgres_schemas as p_schemas
 from components.functions.message import handle_add_new_message
+from components.functions.group import handle_get_all_participants, handle_check_existed_group
 
 
 class ConnMsgType(str, Enum):
@@ -18,9 +18,9 @@ class ConnMsgType(str, Enum):
     help = "help"
 
 
-class ConnMsgAction(str, Enum):
-    new = "new"
-    delete = "delete"
+# class ConnMsgAction(str, Enum):
+#     new = "new"
+#     delete = "delete"
 
 
 class ConnMsgStatus(str, Enum):
@@ -32,8 +32,8 @@ class ConnMsgStatus(str, Enum):
 class ConnMsg(BaseModel):
     type: ConnMsgType
     status: ConnMsgStatus | None = None
-    action: ConnMsgAction | None = None
     data: Any
+    # action: ConnMsgAction | None = None
 
 
 class Conn:
@@ -43,6 +43,9 @@ class Conn:
 
 
 class ConnectionManager:
+    conns_by_id: dict[int, Conn]
+    conns_by_ws: dict[CustomWebSocket, Conn]
+
     def __init__(self):
         self.conns_by_id = {}
         self.conns_by_ws = {}
@@ -52,8 +55,6 @@ class ConnectionManager:
         new_active_connection = Conn(websocket, accountinfo)
         self.conns_by_id[accountinfo.id] = new_active_connection
         self.conns_by_ws[websocket] = new_active_connection
-
-        # print(f"New connection: {websocket.client.host}:{websocket.client.port}")
         # pprint(self.conns_by_id)
         # pprint(self.conns_by_ws)
 
@@ -64,37 +65,59 @@ class ConnectionManager:
 
     async def read_conn_message(self, websocket: CustomWebSocket, message: dict):
         try:
-            validated_message = ConnMsg.model_validate(message)
-            if validated_message.type == ConnMsgType.help:
+            conn_message = ConnMsg.model_validate(message)
+            if conn_message.type == ConnMsgType.help:
                 await self.send_personal_conn_message(websocket, ConnMsg(type=ConnMsgType.response,
                                                                          status=ConnMsgStatus.success,
                                                                          data=ConnMsg.model_json_schema()))
 
-            elif validated_message.type == ConnMsgType.message:
-                if validated_message.action == ConnMsgAction.new:
-                    print(validated_message.data)
-                    message_data = s_schemas.MessagePOST.model_validate(validated_message.data)
-                    message_data.accountinfo_id = self.conns_by_ws.get(websocket).accountinfo.id
-                    # group_message.accountinfo_name = self.conns_by_ws.get(websocket).accountinfo.name
-                    error, group_message = handle_add_new_message(message_data)
-                    if error is not None:
-                        raise Exception(error)
+            elif conn_message.type == ConnMsgType.message:
+                message_data = s_schemas.MessagePOST.model_validate(conn_message.data)
+                existed, group = handle_check_existed_group(message_data.group_id, allow_private_groups=True)
+                if not existed:
+                    raise Exception("Group not found")
+                ws_accountinfo = self.conns_by_ws.get(websocket).accountinfo
+                message_data.accountinfo_id = ws_accountinfo.id
+                message_data.accountinfo_name = ws_accountinfo.name
+                message_data.group_name = group.name
+                error, new_group_message = handle_add_new_message(message_data)
+                if error is not None:
+                    raise Exception(error)
 
-                    group_message = s_schemas.MessageGET.model_validate(group_message).model_dump(mode="json")
-                    await self.send_personal_conn_message(websocket, ConnMsg(type=ConnMsgType.response,
-                                                                             status=ConnMsgStatus.success,
-                                                                             data=group_message))
-
-                elif validated_message.action == ConnMsgAction.delete:
-                    pass
+                new_group_message = s_schemas.MessageGET.model_validate(new_group_message).model_dump(mode="json")
+                await self.send_personal_conn_message(websocket, ConnMsg(type=ConnMsgType.response,
+                                                                         status=ConnMsgStatus.success,
+                                                                         data=None))
+                await self.send_message_notifications(new_group_message)
 
         except Exception as e:
             await self.send_personal_conn_message(websocket, ConnMsg(type=ConnMsgType.response,
                                                                      status=ConnMsgStatus.error,
                                                                      data=str(e)))
 
-    async def send_personal_conn_message(self, websocket: CustomWebSocket, message: ConnMsg):
-        await websocket.send_json(message.model_dump())
+    async def send_personal_conn_message(self, websocket: CustomWebSocket, conn_message: ConnMsg):
+        await websocket.send_json(conn_message.model_dump())
+
+    async def send_message_notifications(self, new_group_message: dict):
+        existed, participant_list = handle_get_all_participants(uuid.UUID(new_group_message['group_id']),
+                                                                with_accountinfo=False)
+        available_conns = []
+        for row in participant_list:
+            connection = self.conns_by_id.get(row.accountinfo_id)
+            if connection is not None:
+                available_conns.append(self.send_personal_conn_message(connection.websocket,
+                                                                       ConnMsg(type=ConnMsgType.notification,
+                                                                               data=new_group_message)))
+        print(available_conns)
+        await asyncio.gather(*available_conns)
+
+        # if error is not None:
+        #     await self.send_personal_conn_message(websocket, ConnMsg(type=ConnMsgType.response,
+        #                                                              status=ConnMsgStatus.error,
+        #                                                              data=str(e)))
 
     async def broadcast(self, message: str):
         pass
+
+
+global_connection_manager = ConnectionManager()
