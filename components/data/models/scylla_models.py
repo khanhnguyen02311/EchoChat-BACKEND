@@ -49,7 +49,7 @@ class ParticipantByAccount(Model):
     last_updated = columns.DateTime(primary_key=True, clustering_order="DESC", default=datetime.utcnow)
 
     notify = columns.Boolean(default=True)
-    role = columns.Text(max_length=15, default="Participant")
+    role = columns.Text(max_length=15, default=CONSTANT.Participant_role[0])
 
 
 # ==============================================================================
@@ -60,10 +60,10 @@ class ParticipantByGroup(Model):
 
     group_id = columns.UUID(primary_key=True)
     time_created = columns.DateTime(primary_key=True, clustering_order="DESC", default=datetime.utcnow)
+    accountinfo_id = columns.Integer(primary_key=True, clustering_order="DESC")
 
-    accountinfo_id = columns.Integer(required=True)
     notify = columns.Boolean(default=True)
-    role = columns.Text(max_length=15, default="Participant")
+    role = columns.Text(max_length=15, default=CONSTANT.Participant_role[0])
 
 
 # ==============================================================================
@@ -74,11 +74,11 @@ class MessageByAccount(Model):
 
     accountinfo_id = columns.Integer(primary_key=True)
     time_created = columns.DateTime(primary_key=True, clustering_order="DESC", default=datetime.utcnow)
+    group_id = columns.UUID(primary_key=True, clustering_order="DESC")
 
-    group_id = columns.UUID(required=True)
     group_name = columns.Text(max_length=64)
     accountinfo_name = columns.Text(max_length=64)
-    type = columns.Text(max_length=15, default="Message")
+    type = columns.Text(max_length=15, default=CONSTANT.Message_type[0])
     content = columns.Text(max_length=256, required=True)
 
 
@@ -90,11 +90,11 @@ class MessageByGroup(Model):
 
     group_id = columns.UUID(primary_key=True)
     time_created = columns.DateTime(primary_key=True, clustering_order="DESC", default=datetime.utcnow)
+    accountinfo_id = columns.Integer(primary_key=True, clustering_order="DESC")
 
-    accountinfo_id = columns.Integer(required=True)
     accountinfo_name = columns.Text(max_length=64)
     group_name = columns.Text(max_length=64)
-    type = columns.Text(max_length=15, default="Message")
+    type = columns.Text(max_length=15, default=CONSTANT.Message_type[0])
     content = columns.Text(max_length=256, required=True)
 
 
@@ -106,11 +106,11 @@ class MessagePinned(Model):
 
     group_id = columns.UUID(primary_key=True)
     time_created = columns.DateTime(primary_key=True, clustering_order="DESC", default=datetime.utcnow)
+    accountinfo_id = columns.Integer(primary_key=True, clustering_order="DESC")
 
-    accountinfo_id = columns.Integer(required=True)
     accountinfo_name = columns.Text(max_length=64)
     group_name = columns.Text(max_length=64)
-    type = columns.Text(max_length=15, default="Message")
+    type = columns.Text(max_length=15, default=CONSTANT.Message_type[0])
     content = columns.Text(max_length=256, required=True)
     time_pinned = columns.DateTime(default=datetime.utcnow)
 
@@ -123,7 +123,7 @@ class Groupattachment(Model):
 
     group_id = columns.UUID(primary_key=True)
     type = columns.Text(primary_key=True, clustering_order="DESC",
-                        max_length=15, default="Message")
+                        max_length=15, default=CONSTANT.Groupattachment_type[0])
     filename = columns.Text(primary_key=True, clustering_order="DESC")
 
     time_created = columns.DateTime(default=datetime.utcnow)

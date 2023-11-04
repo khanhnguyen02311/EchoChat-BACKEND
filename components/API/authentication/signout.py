@@ -4,6 +4,6 @@ from components.functions.security import handle_deactivate_token
 router = APIRouter()
 
 
-@router.post("/logout", dependencies=[Depends(handle_deactivate_token)])
-async def logout():
+@router.post("/signout", dependencies=[Depends(handle_deactivate_token)])
+async def signout():
     return "Done"

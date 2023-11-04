@@ -1,12 +1,12 @@
 from typing import Any
 from sqlalchemy import select, and_, or_, update
 from sqlalchemy.orm import Session
-from components.storages.models.postgres_models import Account, Accountinfo
-from components.storages.schemas.postgres_schemas import AccountSchemaPOST, AccountinfoSchemaPUT
+from components.data.models.postgres_models import Account, Accountinfo
+from components.data.schemas.postgres_schemas import AccountPOST, AccountinfoPUT
 from components.functions import security
 
 
-def handle_create_account(session: Session, input_account: AccountSchemaPOST) -> tuple[Any, Any]:
+def handle_create_account(session: Session, input_account: AccountPOST) -> tuple[Any, Any]:
     """Create new Account item from input info.\n
     Return tuple: (error, Account item)"""
 
@@ -52,7 +52,7 @@ def handle_authenticate_account(session: Session, username_or_email: str, passwo
 
 
 def handle_edit_accountinfo(session: Session, accountinfo_token: Accountinfo,
-                            accountinfo_new: AccountinfoSchemaPUT) -> Any:
+                            accountinfo_new: AccountinfoPUT) -> Any:
     """Check and update existing Accountinfo. Return error if needed. \n
     Return: (error)"""
 

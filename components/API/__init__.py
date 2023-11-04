@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 from configurations.conf import Env
-from components.storages import ScyllaSession
+from components.data import ScyllaSession
 # Endpoint-level hubs
-from .authentication import signup, signin, logout, token
+from .authentication import signup, signin, signout, token
 from .user import me, search
 from .chat import group
 from .ws import ws
@@ -10,8 +10,8 @@ from .ws import ws
 authentication_hub = APIRouter(prefix="/auth")
 authentication_hub.include_router(signup.router)
 authentication_hub.include_router(signin.router)
+authentication_hub.include_router(signout.router)
 authentication_hub.include_router(token.router)
-authentication_hub.include_router(logout.router)
 
 chat_hub = APIRouter(prefix="/chat")
 chat_hub.include_router(group.router)
@@ -32,7 +32,7 @@ super_hub.include_router(ws_hub)
 
 
 @super_hub.get("/")
-def default():
+def application_info():
     # with PostgresSession() as session:
     #     postgres_mains = session.execute(text("SELECT client_addr, state FROM pg_stat_replication;")).scalars()
     #     session.close()
