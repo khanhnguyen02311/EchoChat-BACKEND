@@ -23,10 +23,12 @@ def get_group_list(accountinfo_token: Annotated[p_models.Accountinfo, Depends(ha
 def create_new_group(group_info: s_schemas.GroupPOST,
                      accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
     try:
-        # add multiple accounts when create group, if needed later
-        list_participant_accountinfo = [accountinfo_token]
-        error_list, created_group = handle_add_new_group(group_info, list_participant_accountinfo)
-        return {"group": created_group, "errors": error_list}
+        error, created_group, noti_message = handle_add_new_group(group_info, accountinfo_token)
+        if error is not None:
+            raise Exception(error)
+        global_connection_manager.send_message_notifications(
+            s_schemas.MessageGET.model_validate(noti_message).model_dump(mode="json"))
+        return "Done"
 
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
@@ -102,7 +104,7 @@ async def leave_group(group_id: uuid.UUID,
                                                              content=f"User {accountinfo_token.name} has left group.")
         await global_connection_manager.send_message_notifications(
             s_schemas.MessageGET.model_validate(leave_group_message).model_dump(mode="json"))
-        return "Success"
+        return "Done"
 
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -118,10 +120,9 @@ def delete_group(group_id: uuid.UUID,
             raise Exception("You are not a participant of the group")
         if participant.role in s_models.CONSTANT.Participant_role[0:2]:
             raise Exception("You don't have permission to delete group")
-
         ## delete all messages, participants, notifications, etc. ##
         s_models.Group.objects.filter(id=group_id).first().delete()
-        return "Success"
+        return "Done"
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=str(e))

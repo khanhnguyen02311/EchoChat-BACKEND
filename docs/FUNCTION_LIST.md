@@ -1,12 +1,12 @@
 ### Users:
 
 - [ ] Sign up, sign in
-    - [x] Manual with user/pass
+    - [x] Manual with username and password
     - [ ] Facebook, Google
 - [x] Logout
 - [ ] Forgot password
 - [x] Renew access token
-- [ ] Get/set user information
+- [ ] Get, set user information
     - [x] Name, username, password, email, description
     - [ ] Avatar image
 - [ ] ~~Add friend, remove friend~~ ***(OPTIONAL)***
@@ -14,13 +14,13 @@
 - [ ] See private group invitation
 - [ ] Leave group
 - [x] Create new group
-- [ ] See group messages, group participants, group information
+- [x] See group messages, group participants, group information
 - [ ] Send messages to group
     - [x] Text message, link
     - [ ] Icon, emoji
     - [ ] Image & file
 - [ ] Send auto-remove message
-- [ ] Pin / unpin message
+- [ ] Pin, unpin message
 - [ ] Delete message
 - [ ] Receive notifications
     - [ ] New messages

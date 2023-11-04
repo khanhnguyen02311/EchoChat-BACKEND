@@ -73,35 +73,23 @@ def handle_add_new_participant(group_id: uuid.UUID,
     return None, new_participant_by_group, joined_group_message
 
 
-def handle_add_new_group(group_info: s_schemas.GroupPOST, list_accountinfo: list[p_models.Accountinfo]) -> \
-        tuple[list[str] | None, s_models.Group | None]:
-    """Create new group and participant(s) for that group. Return error list if existed.\n
-    Return: (error_list, group_item)"""
+def handle_add_new_group(group_info: s_schemas.GroupPOST, accountinfo: p_models.Accountinfo,
+                         with_creator_notification: bool = True) -> \
+        tuple[Any, s_models.Group | None, s_models.MessageByGroup | None]:
+    """Create new group and assign creator for that group. Return error if existed.\n
+    Return: (error, group_item, notification_message)"""
 
     ## Add new group_by_name, if needed later ##
     new_group = s_models.Group.create(**group_info.model_dump())
     error_list = []
     # joined_messages = []
     # group owner should be the first id in list
-    error, _, joined_message = handle_add_new_participant(new_group.id, list_accountinfo[0].id,
+    error, _, joined_message = handle_add_new_participant(new_group.id, accountinfo.id,
                                                           role=s_models.CONSTANT.Participant_role[2],
                                                           group_name=group_info.name,
-                                                          accountinfo_name=list_accountinfo[0].name,
-                                                          with_notification=True)
-    if error is not None:
-        error_list.append(error)
-    # if joined_message is not None:
-    #     joined_messages.append(joined_message)
-
-    for accountinfo in list_accountinfo[1:]:
-        error, _, _ = handle_add_new_participant(new_group.id, accountinfo.id, group_name=group_info.name,
-                                                 accountinfo_name=list_accountinfo[0].name, with_notification=True)
-        if error is not None:
-            error_list.append(error)
-        # if joined_message is not None:
-        #     joined_messages.append(joined_message)
-
-    return None if len(error_list) == 0 else error_list, new_group
+                                                          accountinfo_name=accountinfo.name,
+                                                          with_notification=with_creator_notification)
+    return error, new_group, joined_message
 
 
 def handle_get_personal_groups(accountinfo_id: int) -> list:

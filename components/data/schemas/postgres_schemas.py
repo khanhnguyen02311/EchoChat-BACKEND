@@ -17,9 +17,9 @@ class AccountGET(BaseORMModel):
 
 
 class AccountPOST(BaseORMModel):
-    username: constr(max_length=128)
-    password: constr(max_length=128)
-    email: constr(max_length=128)
+    username: constr(min_length=8, max_length=128, pattern=r"^[a-zA-Z0-9_!@#$%^&*+-/]+$")
+    password: constr(min_length=8, max_length=128, pattern=r"^[a-zA-Z0-9_!@#$%^&*+-/]+$")
+    email: constr(max_length=128, pattern=r"^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,4})+$")
 
 
 class AccountinfoGET(BaseORMModel):
