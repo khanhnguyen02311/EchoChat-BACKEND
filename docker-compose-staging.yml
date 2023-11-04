@@ -31,6 +31,7 @@ services:
       - 'POSTGRES_USER=${POSTGRES_USR}'
       - 'POSTGRES_PASSWORD=${POSTGRES_PWD}'
       - 'PGDATA=/data/postgres'
+      - POSTGRES_INITDB_ARGS="--auth-host=scram-sha-256"
     volumes:
       - postgres:/data/postgres
     networks:
