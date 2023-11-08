@@ -15,5 +15,5 @@ RUN pip install --upgrade pip && pip install --no-cache-dir --verbose -r require
 
 COPY . .
 
-CMD python3 main.py --stage staging --debug False
+CMD python3 main.py --stage staging --debug True
 
