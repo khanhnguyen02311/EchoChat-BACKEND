@@ -1,5 +1,4 @@
 import asyncio
-import pprint
 import uuid
 from enum import Enum
 from typing import Any
@@ -55,8 +54,6 @@ class ConnectionManager:
         new_active_connection = Conn(websocket, accountinfo)
         self.conns_by_id[accountinfo.id] = new_active_connection
         self.conns_by_ws[websocket] = new_active_connection
-        # pprint(self.conns_by_id)
-        # pprint(self.conns_by_ws)
 
     def disconnect(self, websocket: CustomWebSocket):
         active_connection = self.conns_by_ws.get(websocket)
@@ -108,9 +105,8 @@ class ConnectionManager:
                 available_conns.append(self.send_personal_conn_message(connection.websocket,
                                                                        ConnMsg(type=ConnMsgType.notification,
                                                                                data=new_group_message)))
-        print(available_conns)
+        # print(available_conns)
         await asyncio.gather(*available_conns)
-
         # if error is not None:
         #     await self.send_personal_conn_message(websocket, ConnMsg(type=ConnMsgType.response,
         #                                                              status=ConnMsgStatus.error,
