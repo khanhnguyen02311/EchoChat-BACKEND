@@ -44,8 +44,9 @@ def handle_add_new_participant(group_id: uuid.UUID,
     Return: (error, participant_item, joined_message_item)"""
 
     # check if participant exists
-    joined, _ = handle_check_joined_participant(group_id, accountinfo_id)
-    if joined:
+    participant = s_models.ParticipantByGroup.objects.filter(group_id=group_id).filter(
+        accountinfo_id=accountinfo_id).allow_filtering().first()
+    if participant is not None:
         return f"User {accountinfo_name} already existed in group", None, None
 
     new_participant_by_group = s_models.ParticipantByGroup.create(
@@ -53,7 +54,6 @@ def handle_add_new_participant(group_id: uuid.UUID,
         accountinfo_id=accountinfo_id,
         role=role
     )
-
     joined_group_message = None
     if with_notification:
         s_models.ParticipantByAccount.create(
@@ -73,6 +73,39 @@ def handle_add_new_participant(group_id: uuid.UUID,
     return None, new_participant_by_group, joined_group_message
 
 
+def handle_remove_participant(group_id: uuid.UUID,
+                              accountinfo_id: int,
+                              group_name: str = None,
+                              accountinfo_name: str = None,
+                              with_notification: bool = False):
+    """Handle removing participant from group. Send back the left event if needed\n"""
+
+    participant_by_group = s_models.ParticipantByGroup.objects.filter(group_id=group_id).filter(
+        accountinfo_id=accountinfo_id).allow_filtering().first()
+    participant_by_account = s_models.ParticipantByAccount.objects.filter(accountinfo_id=accountinfo_id).filter(
+        group_id=group_id).allow_filtering().first()
+
+    if participant_by_group is not None:
+        if participant_by_group.role == s_models.CONSTANT.Participant_role[2]:
+            return "Cannot remove creator from group", None
+        participant_by_group.delete()
+    if participant_by_account is not None:
+        participant_by_account.delete()
+
+    left_group_message = None
+    if with_notification:
+        left_group_message = s_models.MessageByGroup.create(
+            group_id=group_id,
+            accountinfo_id=accountinfo_id,
+            group_name=group_name,
+            accountinfo_name=accountinfo_name,
+            type=s_models.CONSTANT.Message_type[2],
+            content=f"User {accountinfo_name} left group."
+        )
+
+    return None, left_group_message
+
+
 def handle_add_new_group(group_info: s_schemas.GroupPOST, accountinfo: p_models.Accountinfo,
                          with_creator_notification: bool = True) -> \
         tuple[Any, s_models.Group | None, s_models.MessageByGroup | None]:
@@ -81,9 +114,6 @@ def handle_add_new_group(group_info: s_schemas.GroupPOST, accountinfo: p_models.
 
     ## Add new group_by_name, if needed later ##
     new_group = s_models.Group.create(**group_info.model_dump())
-    error_list = []
-    # joined_messages = []
-    # group owner should be the first id in list
     error, _, joined_message = handle_add_new_participant(new_group.id, accountinfo.id,
                                                           role=s_models.CONSTANT.Participant_role[2],
                                                           group_name=group_info.name,
