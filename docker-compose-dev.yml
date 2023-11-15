@@ -53,11 +53,11 @@ services:
     depends_on:
       - db-scylla-1
 
-#  obsv-prometheus:
-#    image: prom/prometheus
-#    restart: unless-stopped
-#    ports:
-#      - '9090:9090'
-#    volumes:
-#      - ./prometheus/prometheus.yml:/media/knguyen02311/Datadisk/Programming/Python/FastAPI/EchoChat-BACKEND/etc/prometheus/prometheus.yml
-#    command: --config.file=/etc/prometheus/prometheus.yml
+  obsv-prometheus:
+    image: prom/prometheus
+    restart: unless-stopped
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command: --config.file=/etc/prometheus/prometheus.yml

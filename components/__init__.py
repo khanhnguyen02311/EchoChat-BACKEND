@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from configurations import conf
 from components.API import super_hub
 from components.utilities.tracers import setting_otlp
+from prometheus_fastapi_instrumentator import Instrumentator
 
 tags_metadata = [
     {
@@ -30,6 +31,7 @@ def create_app(debug: bool, stage: str):
         allow_headers=[""]
     )
     app.include_router(super_hub)
-    # if stage in ['dev', 'staging', 'prod']:
-    #     setting_otlp(app, log_correlation=False)
+    if stage in ['staging', 'prod']:
+        Instrumentator().instrument(app).expose(app)
+        # setting_otlp(app, log_correlation=False)
     return app
