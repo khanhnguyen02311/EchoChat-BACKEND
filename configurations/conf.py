@@ -43,3 +43,9 @@ class Scylla:
     DB_PORT = int(environ.get("SCYLLA_PORT"))
     DB_KEYSPACE = environ.get("SCYLLA_KEYSPACE")
     DB_REPLICATION_FACTOR = int(environ.get("SCYLLA_REPLICATION_FACTOR"))
+
+
+class Observability:
+    TRACING_ENDPOINT = "http://tempo:4317"
+    TRACING_SERVICE_NAME = "echochat-fastapi-tracing"
+    METRICS_SERVICE_NAME = "echochat-fastapi-metrics"

@@ -57,18 +57,6 @@ async def join_group(group_id: uuid.UUID,
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
-@router.get("/{group_id}/messages")
-def get_message_list(accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)],
-                     group_id: uuid.UUID):
-    if handle_check_joined_participant(group_id, accountinfo_token.id)[0]:
-        message_list = s_models.MessageByGroup.objects.filter(group_id=group_id).all()
-        return message_list[:]
-
-    else:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail="You are not a participant of the group")
-
-
 @router.get("/{group_id}/participants")
 def get_group_participants(
         accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)],
