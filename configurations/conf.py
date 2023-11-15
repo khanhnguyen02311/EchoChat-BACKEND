@@ -46,6 +46,5 @@ class Scylla:
 
 
 class Observability:
-    TRACING_ENDPOINT = "http://tempo:4317"
-    TRACING_SERVICE_NAME = "echochat-fastapi-tracing"
-    METRICS_SERVICE_NAME = "echochat-fastapi-metrics"
+    TRACING_ENDPOINT = "0.0.0.0:" + environ.get("OBSERVABILITY_TRACING_PORT")
+    OBSERVABILITY_SERVICE_NAME = environ.get("OBSERVABILITY_SERVICE_NAME")

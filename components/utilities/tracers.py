@@ -110,8 +110,8 @@ def setting_otlp(app, log_correlation: bool = True) -> None:
     """Setting OpenTelemetry and set the service name to show in traces"""
 
     resource = Resource.create(attributes={
-        "service.name": conf.Observability.TRACING_SERVICE_NAME + "-" + conf.Env.APP_STAGE,  # for Tempo to distinguish source
-        "compose_service": conf.Observability.TRACING_SERVICE_NAME + "-" + conf.Env.APP_STAGE  # as a query criteria for Trace to logs
+        "service.name": conf.Observability.OBSERVABILITY_SERVICE_NAME + "-" + conf.Env.APP_STAGE,  # for Tempo to distinguish source
+        "compose_service": conf.Observability.OBSERVABILITY_SERVICE_NAME + "-" + conf.Env.APP_STAGE  # as a query criteria for Trace to logs
     })
 
     # set the tracer provider
