@@ -15,5 +15,10 @@ RUN pip install --upgrade pip && pip install --no-cache-dir --verbose -r require
 
 COPY . .
 
-CMD python3 main.py --stage staging --debug True
+CMD opentelemetry-instrument \
+    --traces_exporter console,otlp \
+    --metrics_exporter console \
+    --service_name echochat-staging-metrics \
+    --exporter_otlp_endpoint 0.0.0.0:4317 \
+    python3 main.py --stage staging --debug True
 
