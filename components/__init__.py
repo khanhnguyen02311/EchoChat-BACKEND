@@ -30,6 +30,6 @@ def create_app(debug: bool, stage: str):
         allow_headers=[""]
     )
     app.include_router(super_hub)
-    # if stage in ['staging', 'prod']:
+    # if stage in ['dev', 'staging', 'prod']:
     #     setting_otlp(app, log_correlation=False)
     return app
