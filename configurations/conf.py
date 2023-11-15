@@ -43,3 +43,8 @@ class Scylla:
     DB_PORT = int(environ.get("SCYLLA_PORT"))
     DB_KEYSPACE = environ.get("SCYLLA_KEYSPACE")
     DB_REPLICATION_FACTOR = int(environ.get("SCYLLA_REPLICATION_FACTOR"))
+
+
+class Observability:
+    TRACING_ENDPOINT = "0.0.0.0:" + environ.get("OBSERVABILITY_TRACING_PORT")
+    OBSERVABILITY_SERVICE_NAME = environ.get("OBSERVABILITY_SERVICE_NAME")

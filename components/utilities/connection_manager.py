@@ -70,17 +70,12 @@ class ConnectionManager:
 
             elif conn_message.type == ConnMsgType.message:
                 message_data = s_schemas.MessagePOST.model_validate(conn_message.data)
-                existed, group = handle_check_existed_group(message_data.group_id, allow_private_groups=True)
-                if not existed:
-                    raise Exception("Group not found")
                 ws_accountinfo = self.conns_by_ws.get(websocket).accountinfo
                 message_data.accountinfo_id = ws_accountinfo.id
                 message_data.accountinfo_name = ws_accountinfo.name
-                message_data.group_name = group.name
                 error, new_group_message = handle_add_new_message(message_data)
                 if error is not None:
                     raise Exception(error)
-
                 new_group_message = s_schemas.MessageGET.model_validate(new_group_message).model_dump(mode="json")
                 await self.send_personal_conn_message(websocket, ConnMsg(type=ConnMsgType.response,
                                                                          status=ConnMsgStatus.success,
@@ -105,7 +100,6 @@ class ConnectionManager:
                 available_conns.append(self.send_personal_conn_message(connection.websocket,
                                                                        ConnMsg(type=ConnMsgType.notification,
                                                                                data=new_group_message)))
-        # print(available_conns)
         await asyncio.gather(*available_conns)
         # if error is not None:
         #     await self.send_personal_conn_message(websocket, ConnMsg(type=ConnMsgType.response,

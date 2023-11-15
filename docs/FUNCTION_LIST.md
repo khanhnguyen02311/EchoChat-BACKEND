@@ -12,7 +12,7 @@
 - [ ] ~~Add friend, remove friend~~ ***(OPTIONAL)***
 - [x] Join public group
 - [ ] See private group invitation
-- [ ] Leave group
+- [x] Leave group
 - [x] Create new group
 - [x] See group messages, group participants, group information
 - [ ] Send messages to group
@@ -33,10 +33,10 @@
 ### Group admins:
 
 - [ ] Edit group information
-    - [ ] Group name, description
+    - [x] Group name, description
     - [ ] Group image
-    - [ ] Group's visibility (public / private)
-- [ ] Add/remove participant from group
+    - [x] Group's visibility (public / private)
+- [x] Add/remove participant from group
 
 ### Group creators:
 

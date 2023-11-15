@@ -5,6 +5,7 @@ fastapi==0.100.1
 pydantic==2.1.1
 SQLAlchemy==2.0.20
 alembic==1.11.1
+starlette
 python-jose
 passlib
 pytest
@@ -18,3 +19,9 @@ scylla-driver==3.26.2
 Faker
 authlib
 itsdangerous
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-logging
+opentelemetry-exporter-otlp
+prometheus-client
