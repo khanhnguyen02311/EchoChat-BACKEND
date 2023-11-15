@@ -33,6 +33,16 @@ class ParticipantPOST(BaseORMModel):
     role: str = s_models.CONSTANT.Participant_role[0]
 
 
+class MessageGET(BaseORMModel):
+    group_id: uuid.UUID
+    accountinfo_id: int
+    content: constr(max_length=256)
+    type: str
+    group_name: str | None = None
+    accountinfo_name: str | None = None
+    time_created: datetime
+
+
 class MessagePOST(BaseORMModel):
     group_id: uuid.UUID
     accountinfo_id: int | None = None
@@ -42,11 +52,7 @@ class MessagePOST(BaseORMModel):
     accountinfo_name: str | None = None
 
 
-class MessageGET(BaseORMModel):
+class MessageMODIFY(BaseORMModel):
     group_id: uuid.UUID
-    accountinfo_id: int
-    content: constr(max_length=256)
-    type: str
-    group_name: str | None = None
-    accountinfo_name: str | None = None
+    accountinfo_id: int | None = None
     time_created: datetime
