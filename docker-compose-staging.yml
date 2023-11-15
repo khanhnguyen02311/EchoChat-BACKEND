@@ -18,7 +18,7 @@ services:
       - db-scylla-3
     ports:
       - "20011:8000"
-      - "4317:4317"
+    #      - "4317:4317"
     #    environment:
     #      - 'APP_NAME=${OBSERVABILITY_SERVICE_NAME}'
     #      - OTEL_PYTHON_LOG_CORRELATION="true"
@@ -92,6 +92,17 @@ services:
     #      - "./scylla/scylla.yaml:/etc/scylla/scylla.yaml"
     #      - "./scylla/cassandra-rackdc.properties.dc1:/etc/scylla/cassandra-rackdc.properties"
     command: --smp 1 --memory 1500M --overprovisioned 1 --seeds=db-scylla-1
+    networks:
+      - network-1
+
+  obsv-prometheus:
+    image: prom/prometheus
+    restart: unless-stopped
+    ports:
+      - '9091:9091'
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command: --config.file=/etc/prometheus/prometheus.yml --web.listen-address=:9091
     networks:
       - network-1
 
