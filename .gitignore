@@ -1,5 +1,9 @@
-# Project components
+# Production environment variables
 .env.prod
+
+# File storage
+storage/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -11,6 +11,7 @@ services:
       - .env.staging
     restart: unless-stopped
     depends_on:
+      - fs
       - db-postgres
       - db-redis
       - db-scylla-1
@@ -27,6 +28,18 @@ services:
     #      - OTEL_METRICS_EXPORTER="console"
     #      - 'OTEL_SERVICE_NAME:${OBSERVABILITY_SERVICE_NAME}'
     #      - 'OTEL_RESOURCE_ATTRIBUTES="compose_service=${OBSERVABILITY_SERVICE_NAME}"'
+    networks:
+      - network-1
+
+  fs:
+    build:
+      context: "https://github.com/khanhnguyen02311/simple-go-file-server.git"
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "20012:1323"
+    volumes:
+      - ./storage:/app/files
     networks:
       - network-1
 
