@@ -1,6 +1,8 @@
 import uuid
 from datetime import datetime
 from typing import Any
+
+from cassandra.query import SimpleStatement
 from sqlalchemy import select
 from components.data import ScyllaSession, PostgresSession
 from components.data.models import scylla_models as s_models, postgres_models as p_models
@@ -107,7 +109,7 @@ def handle_remove_participant(group_id: uuid.UUID,
 
 
 def handle_add_new_group(group_info: s_schemas.GroupPOST, accountinfo: p_models.Accountinfo,
-                         with_creator_notification: bool = True) -> \
+                         with_creation_notification: bool = True) -> \
         tuple[Any, s_models.Group | None, s_models.MessageByGroup | None]:
     """Create new group and assign creator for that group. Return error if existed.\n
     Return: (error, group_item, notification_message)"""
@@ -118,24 +120,43 @@ def handle_add_new_group(group_info: s_schemas.GroupPOST, accountinfo: p_models.
                                                           role=s_models.CONSTANT.Participant_role[2],
                                                           group_name=group_info.name,
                                                           accountinfo_name=accountinfo.name,
-                                                          with_notification=with_creator_notification)
+                                                          with_notification=with_creation_notification)
     return error, new_group, joined_message
 
 
-def handle_get_personal_groups(accountinfo_id: int) -> list:
+def handle_get_personal_groups(accountinfo_id: int, before_time: datetime | None = None) -> list:
     """Get all joined groups and most recent messages\n
     Return: (message_list)"""
 
-    participant_query = ScyllaSession.execute(
-        f"select last_updated, group_id from participant_by_account where accountinfo_id={accountinfo_id} group by group_id")
-    participant_query = sorted(participant_query, key=lambda query_row: query_row['last_updated'], reverse=True)
+    # participant_query = ScyllaSession.execute(
+    #     f"select last_updated, group_id from participant_by_account where accountinfo_id={accountinfo_id} group by group_id")
+    # participant_query = sorted(participant_query, key=lambda query_row: query_row['last_updated'], reverse=True)
+    #
+    # message_list = []
+    # for row in participant_query:
+    #     # group_query = session.execute(f"select * from group where id={row['group_id']}").one()
+    #     group_last_message = ScyllaSession.execute(
+    #         f"select * from message_by_group where group_id={row['group_id']} limit 1").one()
+    #     message_list.append(group_last_message)
 
+    if before_time is None:
+        before_time = datetime.utcnow()
+    paging_state = None
+    user_lookup_stmt = SimpleStatement("select group_id from participant_by_account where accountinfo_id=%s and last_updated<%s", fetch_size=50)
+    group_lookup_stmt = SimpleStatement("select * from message_by_group where group_id=%s")
+
+    existed_group = {}
     message_list = []
-    for row in participant_query:
-        # group_query = session.execute(f"select * from group where id={row['group_id']}").one()
-        group_last_message = ScyllaSession.execute(
-            f"select * from message_by_group where group_id={row['group_id']} limit 1").one()
-        message_list.append(group_last_message)
+    while len(existed_group) < 25:
+        rows = ScyllaSession.execute(user_lookup_stmt, (accountinfo_id, before_time), paging_state=paging_state)
+        paging_state = rows.paging_state
+        for row in rows:
+            if row["group_id"] not in existed_group:
+                group = ScyllaSession.execute(group_lookup_stmt, [row["group_id"]]).one()
+                existed_group[row["group_id"]] = True
+                message_list.append(group)
+        if paging_state is None:  # no more data rows
+            break
 
     return message_list
 

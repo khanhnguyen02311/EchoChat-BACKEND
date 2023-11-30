@@ -1,5 +1,6 @@
 import json
 import uuid
+from datetime import datetime
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -15,8 +16,15 @@ router = APIRouter(prefix="/group")
 
 
 @router.get("/recent")
-def get_group_list(accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
-    return handle_get_personal_groups(accountinfo_token.id)
+def get_group_list(accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)], before_time: str | None = None):
+    if before_time is None:
+        return handle_get_personal_groups(accountinfo_token.id)
+    try:
+        formatted_time = datetime.strptime(before_time, "%Y-%m-%dT%H:%M:%S.%f")
+        return handle_get_personal_groups(accountinfo_token.id, before_time=formatted_time)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=str(e))
 
 
 @router.post("/create")
