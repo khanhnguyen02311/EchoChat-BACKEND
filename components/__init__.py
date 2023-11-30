@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from configurations import conf
 from components.API import super_hub
-from components.utilities.tracers import setting_otlp
+# from components.utilities.tracers import setting_otlp
 from prometheus_fastapi_instrumentator import Instrumentator
 
 tags_metadata = [
@@ -21,17 +21,17 @@ tags_metadata = [
 ]
 
 
-def create_app(debug: bool, stage: str):
-    app = FastAPI(debug=debug, openapi_tags=tags_metadata, redoc_url=None)
-    app.add_middleware(
+def serve_api(debug: bool, stage: str):
+    server = FastAPI(debug=debug, openapi_tags=tags_metadata, redoc_url=None)
+    server.add_middleware(
         CORSMiddleware,
         allow_origins=[conf.Env.APP_FRONTEND_URL],  # your frontend port
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=[""]
     )
-    app.include_router(super_hub)
+    server.include_router(super_hub)
     if stage in ['staging', 'prod']:
-        Instrumentator().instrument(app).expose(app)
+        Instrumentator().instrument(server).expose(server)
         # setting_otlp(app, log_correlation=False)
-    return app
+    return server

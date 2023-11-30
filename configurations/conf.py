@@ -3,7 +3,8 @@ from arguments import args
 
 
 class Env:
-    APP_PORT = int(environ.get("APP_PORT"))
+    APP_PORT_API = int(environ.get("APP_PORT_API"))
+    APP_PORT_GRPC = int(environ.get("APP_PORT_GRPC"))
     APP_FRONTEND_URL = environ.get("APP_FRONTEND_URL")
     APP_DEBUG = args.debug
     APP_STAGE = args.stage

@@ -27,7 +27,7 @@ def get_message_list(accountinfo_token: Annotated[p_models.Accountinfo, Depends(
 
 
 @router.post("/new")
-async def add_new_message(message: s_schemas.MessagePOST, group_id: uuid.UUID,
+async def add_new_message(message: s_schemas.MessagePOST,
                           accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
     try:
         message.accountinfo_name = accountinfo_token.name
@@ -44,13 +44,13 @@ async def add_new_message(message: s_schemas.MessagePOST, group_id: uuid.UUID,
 
 
 @router.delete("/delete")
-def delete_message(message: s_schemas.MessagePOST, group_id: uuid.UUID,
+def delete_message(message: s_schemas.MessagePOST,
                    accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
     try:
-        message.accountinfo_name = accountinfo_token.name
-        error, new_group_message = handle_add_new_message(message)
-        if error is not None:
-            raise Exception(error)
+        # message.accountinfo_name = accountinfo_token.name
+        # error, new_group_message = handle_add_new_message(message)
+        # if error is not None:
+        #     raise Exception(error)
         return "Done"
 
     except Exception as e:
@@ -58,6 +58,7 @@ def delete_message(message: s_schemas.MessagePOST, group_id: uuid.UUID,
                             detail=str(e))
 
 
+# TODO: working with pin transactions
 @router.get("/pinned/all")
 def get_pinned_messages(group_id: uuid.UUID, accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
     # if handle_check_joined_participant(group_id, accountinfo_token.id)[0]:

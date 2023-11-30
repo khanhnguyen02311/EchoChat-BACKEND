@@ -21,15 +21,15 @@ services:
       - 'POSTGRES_USER=${POSTGRES_USR}'
       - 'POSTGRES_PASSWORD=${POSTGRES_PWD}'
 
-  fs:
-    build:
-      context: "https://github.com/khanhnguyen02311/simple-go-file-server.git"
-      dockerfile: Dockerfile
-    restart: no
-    ports:
-      - "1323:1323"
-    volumes:
-      - ./storage:/app/files
+  #  fs:
+  #    build:
+  #      context: "https://github.com/khanhnguyen02311/simple-go-file-server.git"
+  #      dockerfile: Dockerfile
+  #    restart: no
+  #    ports:
+  #      - "1323:1323"
+  #    volumes:
+  #      - ./storage:/app/files
 
   db-redis:
     image: redis:7
@@ -45,23 +45,23 @@ services:
       - '9042:9042'
     command: --developer-mode 1 --smp 1 --memory 1500M --overprovisioned 1
 
-  db-scylla-2:
-    image: scylladb/scylla
-    restart: no
-    ports:
-      - '9043:9042'
-    command: --developer-mode 1 --smp 1 --memory 1500M --overprovisioned 1 --seeds=db-scylla-1
-    depends_on:
-      - db-scylla-1
-
-  db-scylla-3:
-    image: scylladb/scylla
-    restart: no
-    ports:
-      - '9044:9042'
-    command: --developer-mode 1 --smp 1 --memory 1500M --overprovisioned 1 --seeds=db-scylla-1
-    depends_on:
-      - db-scylla-1
+#  db-scylla-2:
+#    image: scylladb/scylla
+#    restart: no
+#    ports:
+#      - '9043:9042'
+#    command: --developer-mode 1 --smp 1 --memory 1500M --overprovisioned 1 --seeds=db-scylla-1
+#    depends_on:
+#      - db-scylla-1
+#
+#  db-scylla-3:
+#    image: scylladb/scylla
+#    restart: no
+#    ports:
+#      - '9044:9042'
+#    command: --developer-mode 1 --smp 1 --memory 1500M --overprovisioned 1 --seeds=db-scylla-1
+#    depends_on:
+#      - db-scylla-1
 
 #  obsv-prometheus:
 #    image: prom/prometheus
