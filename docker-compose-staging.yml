@@ -19,7 +19,7 @@ services:
       - db-scylla-3
     ports:
       - "127.0.0.1:20011:8000" # HTTP API
-      # - "127.0.0.1:20012:9000" # gRPC API
+      - "127.0.0.1:20012:9000" # gRPC API
     #    environment:
     #      - 'APP_NAME=${OBSERVABILITY_SERVICE_NAME}'
     #      - OTEL_PYTHON_LOG_CORRELATION="true"
@@ -38,7 +38,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "127.0.0.1:20012:1323"
+      - "127.0.0.1:20013:1323"
     volumes:
       - ./storage:/app/files
     networks:
