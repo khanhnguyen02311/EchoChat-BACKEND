@@ -88,7 +88,6 @@ def handle_get_current_user(access_token: str, query_type="Account") -> Account 
             if user is None:
                 raise Exception("User not found")
             session.expunge_all()
-            print(user)
             return user
 
     except Exception as e:

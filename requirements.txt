@@ -26,3 +26,5 @@ opentelemetry-instrumentation-logging
 opentelemetry-exporter-otlp
 prometheus-client
 prometheus_fastapi_instrumentator
+grpcio
+grpcio-tools
