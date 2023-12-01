@@ -1,10 +1,10 @@
-// python -m grpc_tools.protoc -I. --python_out=. --pyi_out=. --grpc_python_out=. ./components/proto/EchoChatBE.proto
+// python -m grpc_tools.protoc -I. --python_out=. --pyi_out=. --grpc_python_out=. ./components/proto/EchoChat.proto
 
 syntax = "proto3";
 
 service EchoChatBE {
-  rpc WSValidateToken(TokenValue) returns (AccountinfoValue) {}
-  rpc WSNewMessage(NewMessageValue) returns (NewMessageResult) {}
+  rpc ValidateToken(TokenValue) returns (AccountinfoValue) {}
+  rpc NewMessage(NewMessageValue) returns (NewMessageResult) {}
 }
 
 message TokenValue {

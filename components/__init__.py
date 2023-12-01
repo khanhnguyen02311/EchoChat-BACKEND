@@ -4,7 +4,7 @@ from configurations import conf
 from components.API import super_hub
 # from components.utilities.tracers import setting_otlp
 from prometheus_fastapi_instrumentator import Instrumentator
-from components.proto import EchoChatBE_pb2_grpc, services
+from components.proto import EchoChat_pb2_grpc, services
 from concurrent import futures
 import grpc
 
@@ -43,5 +43,5 @@ def serve_api(debug: bool, stage: str):
 def serve_grpc(debug: bool, stage: str):
     max_workers = 1 if stage == "dev" else 3
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
-    EchoChatBE_pb2_grpc.add_EchoChatBEServicer_to_server(services.WSServicer(), server)
+    EchoChat_pb2_grpc.add_EchoChatBEServicer_to_server(services.BEServicer(), server)
     return server
