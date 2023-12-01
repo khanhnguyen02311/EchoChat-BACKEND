@@ -10,7 +10,8 @@ from components.functions.group import handle_add_new_group, handle_get_personal
 from components.data import PostgresSession
 from components.data.models import postgres_models as p_models, scylla_models as s_models
 from components.data.schemas import scylla_schemas as s_schemas, postgres_schemas as p_schemas
-from components.utilities.connection_manager import global_connection_manager
+
+# from components.utilities.connection_manager import global_connection_manager
 
 router = APIRouter(prefix="/group")
 
@@ -34,8 +35,8 @@ async def create_new_group(group_info: s_schemas.GroupPOST,
         error, created_group, noti_message = handle_add_new_group(group_info, accountinfo_token)
         if error is not None:
             raise Exception(error)
-        await global_connection_manager.send_message_notifications(
-            s_schemas.MessageGET.model_validate(noti_message).model_dump(mode="json"))
+        # await global_connection_manager.send_message_notifications(
+        #     s_schemas.MessageGET.model_validate(noti_message).model_dump(mode="json"))
         return "Done"
 
     except Exception as e:
@@ -55,8 +56,8 @@ async def join_group(group_id: uuid.UUID,
                                                                                 with_notification=True)
             if error is not None:
                 raise Exception(error)
-            await global_connection_manager.send_message_notifications(
-                s_schemas.MessageGET.model_validate(joined_message).model_dump(mode="json"))
+            # await global_connection_manager.send_message_notifications(
+            #     s_schemas.MessageGET.model_validate(joined_message).model_dump(mode="json"))
 
             return new_participant
         raise Exception("Group not found")
@@ -99,8 +100,8 @@ async def add_group_participant(
         if error is not None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                                 detail=error)
-        await global_connection_manager.send_message_notifications(
-            s_schemas.MessageGET.model_validate(noti_message).model_dump(mode="json"))
+        # await global_connection_manager.send_message_notifications(
+        #     s_schemas.MessageGET.model_validate(noti_message).model_dump(mode="json"))
         return participant
 
 
@@ -117,8 +118,8 @@ async def delete_group_participant(
     if error is not None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=error)
-    await global_connection_manager.send_message_notifications(
-        s_schemas.MessageGET.model_validate(left_noti_message).model_dump(mode="json"))
+    # await global_connection_manager.send_message_notifications(
+    #     s_schemas.MessageGET.model_validate(left_noti_message).model_dump(mode="json"))
     return "Done"
 
 
@@ -138,8 +139,8 @@ async def leave_group(group_id: uuid.UUID,
                                                              accountinfo_name=accountinfo_token.name,
                                                              type=s_models.CONSTANT.Message_type[2],
                                                              content=f"User {accountinfo_token.name} has left group.")
-        await global_connection_manager.send_message_notifications(
-            s_schemas.MessageGET.model_validate(leave_group_message).model_dump(mode="json"))
+        # await global_connection_manager.send_message_notifications(
+        #     s_schemas.MessageGET.model_validate(leave_group_message).model_dump(mode="json"))
         return "Done"
 
     except Exception as e:
