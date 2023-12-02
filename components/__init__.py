@@ -2,8 +2,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from configurations import conf
 from components.API import super_hub
-from components.utilities.tracers import setting_otlp
+# from components.utilities.tracers import setting_otlp
 from prometheus_fastapi_instrumentator import Instrumentator
+from components.proto import EchoChat_pb2_grpc, services
+from concurrent import futures
+import grpc
 
 tags_metadata = [
     {
@@ -21,17 +24,25 @@ tags_metadata = [
 ]
 
 
-def create_app(debug: bool, stage: str):
-    app = FastAPI(debug=debug, openapi_tags=tags_metadata, redoc_url=None)
-    app.add_middleware(
+def serve_api(debug: bool, stage: str):
+    server = FastAPI(debug=debug, openapi_tags=tags_metadata, redoc_url=None)
+    cors_origins = conf.Env.APP_FRONTEND_URLS.split(",")
+    server.add_middleware(
         CORSMiddleware,
-        allow_origins=[conf.Env.APP_FRONTEND_URL],  # your frontend port
+        allow_origins=cors_origins,  # your frontend port
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=[""]
     )
-    app.include_router(super_hub)
+    server.include_router(super_hub)
     if stage in ['staging', 'prod']:
-        Instrumentator().instrument(app).expose(app)
+        Instrumentator().instrument(server).expose(server)
         # setting_otlp(app, log_correlation=False)
-    return app
+    return server
+
+
+def serve_grpc(debug: bool, stage: str):
+    max_workers = 1 if stage == "dev" else 3
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
+    EchoChat_pb2_grpc.add_EchoChatBEServicer_to_server(services.BEServicer(), server)
+    return server

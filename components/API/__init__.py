@@ -21,15 +21,17 @@ user_hub = APIRouter(prefix="/user", tags=["user"])
 user_hub.include_router(me.router)
 user_hub.include_router(search.router)
 
-ws_hub = APIRouter(prefix="/ws")
-ws_hub.include_router(ws.router)
+# ws_hub = APIRouter(prefix="/ws")
+# ws_hub.include_router(ws.router)
 
 # Super hub
 super_hub = APIRouter()
 super_hub.include_router(authentication_hub)
 super_hub.include_router(chat_hub)
 super_hub.include_router(user_hub)
-super_hub.include_router(ws_hub)
+
+
+# super_hub.include_router(ws_hub)
 
 
 @super_hub.get("/")

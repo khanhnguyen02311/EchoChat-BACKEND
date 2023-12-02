@@ -24,3 +24,5 @@ def handle_add_new_message(new_message: s_schemas.MessagePOST,
     s_models.MessageByAccount.create(**new_message.model_dump())
     new_message_by_group = s_models.MessageByGroup.create(**new_message.model_dump())
     return None, new_message_by_group
+
+# def handle_remove_message(message: s_schemas.MessageMODIFY,
