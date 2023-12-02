@@ -55,8 +55,8 @@ services:
       - 'POSTGRES_USER=${POSTGRES_USR}'
       - 'POSTGRES_PASSWORD=${POSTGRES_PWD}'
       - POSTGRES_INITDB_ARGS="--auth-host=scram-sha-256"
-    volumes:
-      - ./etc/postgres:/var/lib/postgresql/data
+    #    volumes:
+    #      - ./etc/postgres:/var/lib/postgresql/data
     networks:
       - network-1
 
@@ -67,8 +67,8 @@ services:
     ports:
       - '127.0.0.1:6379:6379'
     command: 'redis-server --save 60 1 --loglevel warning --requirepass ${REDIS_PWD}'
-    volumes:
-      - ./etc/redis:/data
+    #    volumes:
+    #      - ./etc/redis:/data
     networks:
       - network-1
 
