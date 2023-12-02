@@ -26,9 +26,10 @@ tags_metadata = [
 
 def serve_api(debug: bool, stage: str):
     server = FastAPI(debug=debug, openapi_tags=tags_metadata, redoc_url=None)
+    cors_origins = conf.Env.APP_FRONTEND_URLS.split(",")
     server.add_middleware(
         CORSMiddleware,
-        allow_origins=[conf.Env.APP_FRONTEND_URL],  # your frontend port
+        allow_origins=cors_origins,  # your frontend port
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=[""]
