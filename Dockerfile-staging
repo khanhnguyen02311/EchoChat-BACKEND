@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN pip install --upgrade pip && pip install --no-cache-dir --verbose -r requirements.txt
 
+RUN python3 -m grpc_tools.protoc -I. --python_out=. --pyi_out=. --grpc_python_out=. ./components/proto/EchoChat.proto
+
 COPY . .
 
 #CMD opentelemetry-instrument \
@@ -21,8 +23,6 @@ COPY . .
 #    --service_name echochat-staging-metrics \
 #    --exporter_otlp_endpoint 0.0.0.0:4317 \
 #    python3 main.py --stage staging --debug True
-
-CMD python3 -m grpc_tools.protoc -I. --python_out=. --pyi_out=. --grpc_python_out=. ./components/proto/EchoChat.proto
 
 CMD python3 main.py --stage staging --debug True
 
