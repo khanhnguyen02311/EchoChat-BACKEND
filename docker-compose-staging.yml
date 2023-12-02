@@ -55,8 +55,8 @@ services:
       - 'POSTGRES_USER=${POSTGRES_USR}'
       - 'POSTGRES_PASSWORD=${POSTGRES_PWD}'
       - POSTGRES_INITDB_ARGS="--auth-host=scram-sha-256"
-    #    volumes:
-    #      - ./etc/postgres:/var/lib/postgresql/data
+    volumes:
+      - ./etc/postgres:/var/lib/postgresql/data
     networks:
       - network-1
 
