@@ -22,5 +22,7 @@ COPY . .
 #    --exporter_otlp_endpoint 0.0.0.0:4317 \
 #    python3 main.py --stage staging --debug True
 
+CMD python3 -m grpc_tools.protoc -I. --python_out=. --pyi_out=. --grpc_python_out=. ./components/proto/EchoChat.proto
+
 CMD python3 main.py --stage staging --debug True
 
