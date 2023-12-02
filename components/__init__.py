@@ -32,7 +32,7 @@ def serve_api(debug: bool, stage: str):
         allow_origins=cors_origins,  # your frontend port
         allow_credentials=True,
         allow_methods=["*"],
-        allow_headers=[""]
+        allow_headers=["Content-Type", "Authorization"]
     )
     server.include_router(super_hub)
     if stage in ['staging', 'prod']:
