@@ -13,9 +13,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN pip install --upgrade pip && pip install --no-cache-dir --verbose -r requirements.txt
 
-RUN python3 -m grpc_tools.protoc -I. --python_out=. --pyi_out=. --grpc_python_out=. ./components/proto/EchoChat.proto
-
 COPY . .
+
+RUN python3 -m grpc_tools.protoc -I. --python_out=. --pyi_out=. --grpc_python_out=. ./components/proto/EchoChat.proto
 
 #CMD opentelemetry-instrument \
 #    --traces_exporter console,otlp \
