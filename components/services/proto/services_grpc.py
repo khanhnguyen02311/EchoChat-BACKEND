@@ -6,8 +6,8 @@ from components.functions.message import handle_add_new_message
 from components.data.schemas import scylla_schemas as s_schemas
 
 
-class BEServicer(EchoChat_pb2_grpc.EchoChatBEServicer):
-    def WSValidateToken(self, request, context):
+class BEServicerGRPC(EchoChat_pb2_grpc.EchoChatBEServicer):
+    def ValidateToken(self, request, context):
         try:
             accountinfo = handle_get_current_accountinfo(request.token)
             return EchoChat_pb2.AccountinfoValue(id=accountinfo.id,
@@ -16,7 +16,7 @@ class BEServicer(EchoChat_pb2_grpc.EchoChatBEServicer):
         except HTTPException as e:
             return EchoChat_pb2.AccountinfoValue(id=-1, name=e.detail, identifier=0)
 
-    def WSNewMessage(self, request, context):
+    def NewMessage(self, request, context):
         input_message = s_schemas.MessagePOST(group_id=request.group_id,
                                               accountinfo_id=request.accountinfo_id,
                                               accountinfo_name=request.accountinfo_name,

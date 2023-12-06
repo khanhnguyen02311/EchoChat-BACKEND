@@ -2,9 +2,9 @@
 .env.prod
 
 # Auto-generated files
-components/proto/*_pb2.py
-components/proto/*_pb2.pyi
-components/proto/*_pb2_grpc.py
+components/services/proto/*_pb2.py
+components/services/proto/*_pb2.pyi
+components/services/proto/*_pb2_grpc.py
 
 # File storage
 storage/
