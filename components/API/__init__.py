@@ -13,9 +13,9 @@ authentication_hub.include_router(signin.router)
 authentication_hub.include_router(signout.router)
 authentication_hub.include_router(token.router)
 
-chat_hub = APIRouter(prefix="/chat", tags=["chat"])
-chat_hub.include_router(group.router)
-chat_hub.include_router(message.router)
+chat_hub = APIRouter(prefix="/chat")
+chat_hub.include_router(group.router, tags=["group"])
+chat_hub.include_router(message.router, tags=["message"])
 
 user_hub = APIRouter(prefix="/user", tags=["user"])
 user_hub.include_router(me.router)
