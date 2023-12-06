@@ -35,12 +35,12 @@ class ParticipantPOST(BaseORMModel):
 
 class MessageGET(BaseORMModel):
     group_id: uuid.UUID
+    time_created: datetime
     accountinfo_id: int
     content: constr(max_length=256)
     type: str
     group_name: str | None = None
     accountinfo_name: str | None = None
-    time_created: datetime
 
 
 class MessagePOST(BaseORMModel):
@@ -54,5 +54,12 @@ class MessagePOST(BaseORMModel):
 
 class MessageMODIFY(BaseORMModel):
     group_id: uuid.UUID
-    accountinfo_id: int | None = None
     time_created: datetime
+    accountinfo_id: int | None = None
+
+
+class NotificationPOST(BaseORMModel):
+    group_id: uuid.UUID
+    accountinfo_id: int | None = None
+    content: constr(max_length=256)
+    type: str = s_models.CONSTANT.Notification_type[0]
