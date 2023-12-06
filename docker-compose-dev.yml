@@ -45,29 +45,40 @@ services:
       - '9042:9042'
     command: --developer-mode 1 --smp 1 --memory 1500M --overprovisioned 1
 
-#  db-scylla-2:
-#    image: scylladb/scylla
-#    restart: no
-#    ports:
-#      - '9043:9042'
-#    command: --developer-mode 1 --smp 1 --memory 1500M --overprovisioned 1 --seeds=db-scylla-1
-#    depends_on:
-#      - db-scylla-1
-#
-#  db-scylla-3:
-#    image: scylladb/scylla
-#    restart: no
-#    ports:
-#      - '9044:9042'
-#    command: --developer-mode 1 --smp 1 --memory 1500M --overprovisioned 1 --seeds=db-scylla-1
-#    depends_on:
-#      - db-scylla-1
+  #  db-scylla-2:
+  #    image: scylladb/scylla
+  #    restart: no
+  #    ports:
+  #      - '9043:9042'
+  #    command: --developer-mode 1 --smp 1 --memory 1500M --overprovisioned 1 --seeds=db-scylla-1
+  #    depends_on:
+  #      - db-scylla-1
+  #
+  #  db-scylla-3:
+  #    image: scylladb/scylla
+  #    restart: no
+  #    ports:
+  #      - '9044:9042'
+  #    command: --developer-mode 1 --smp 1 --memory 1500M --overprovisioned 1 --seeds=db-scylla-1
+  #    depends_on:
+  #      - db-scylla-1
 
-#  obsv-prometheus:
-#    image: prom/prometheus
-#    restart: unless-stopped
-#    ports:
-#      - '9090:9090'
-#    volumes:
-#      - ./etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-#    command: --config.file=/etc/prometheus/prometheus.yml
+  #  obsv-prometheus:
+  #    image: prom/prometheus
+  #    restart: unless-stopped
+  #    ports:
+  #      - '9090:9090'
+  #    volumes:
+  #      - ./etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  #    command: --config.file=/etc/prometheus/prometheus.yml
+
+
+  proto-rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    volumes:
+      - ./etc/rabbitmq/data/:/var/lib/rabbitmq/mnesia
+      - ./etc/rabbitmq/log/:/var/log/rabbitmq
+      - ./etc/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf

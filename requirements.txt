@@ -28,3 +28,4 @@ prometheus-client
 prometheus_fastapi_instrumentator
 grpcio
 grpcio-tools
+pika
