@@ -19,130 +19,95 @@ def handle_check_existed_group(group_id: uuid.UUID,
         return False, None
     if not allow_private_groups and existed_group.visibility is False:
         return False, None
-
     return True, existed_group
 
 
-def handle_check_joined_participant(group_id: uuid.UUID, accountinfo_id: int) -> \
-        tuple[bool, s_models.ParticipantByGroup | None]:
+def handle_check_joined_participant(group_id: uuid.UUID, accountinfo_id: int, with_accountinfo=False) -> \
+        tuple[bool, s_models.ParticipantByGroup | None, p_models.Accountinfo | None]:
     """Check if user already joined group\n
     Return: (result, participant_item)"""
 
     participant = s_models.ParticipantByGroup.objects.filter(group_id=group_id).filter(
         accountinfo_id=accountinfo_id).allow_filtering().first()
-    if participant is not None:
-        return True, participant
-    return False, None
+    if participant is None:
+        return False, None, None
+    if not with_accountinfo:
+        return True, participant, None
+
+    with PostgresSession.begin() as session:
+        user_query = select(p_models.Accountinfo).where(p_models.Accountinfo.id == accountinfo_id)
+        accountinfo = session.scalar(user_query)
+        if accountinfo is None:
+            return False, None, None
+        session.expunge(accountinfo)
+        return True, participant, accountinfo
 
 
 def handle_add_new_participant(group_id: uuid.UUID,
                                accountinfo_id: int,
                                role: str = s_models.CONSTANT.Participant_role[0],
-                               group_name: str = None,
-                               accountinfo_name: str = None,
-                               with_notification: bool = False) -> \
-        tuple[Any, s_models.ParticipantByGroup | None, s_models.MessageByGroup | None]:
+                               accountinfo_name: str = None) -> tuple[Any, s_models.ParticipantByGroup | None]:
     """Handle adding new participant to group. Send back the joined event if needed\n
     Return: (error, participant_item, joined_message_item)"""
 
     # check if participant exists
-    participant = s_models.ParticipantByGroup.objects.filter(group_id=group_id).filter(
-        accountinfo_id=accountinfo_id).allow_filtering().first()
+    participant = s_models.ParticipantByGroup.objects \
+        .filter(group_id=group_id) \
+        .filter(accountinfo_id=accountinfo_id).allow_filtering().first()
     if participant is not None:
-        return f"User {accountinfo_name} already existed in group", None, None
-
-    new_participant_by_group = s_models.ParticipantByGroup.create(
-        group_id=group_id,
-        accountinfo_id=accountinfo_id,
-        role=role
-    )
-    joined_group_message = None
-    if with_notification:
-        s_models.ParticipantByAccount.create(
-            accountinfo_id=accountinfo_id,
-            group_id=group_id,
-            role=role
-        )
-        joined_group_message = s_models.MessageByGroup.create(
-            group_id=group_id,
-            accountinfo_id=accountinfo_id,
-            group_name=group_name,
-            accountinfo_name=accountinfo_name,
-            type=s_models.CONSTANT.Message_type[2],
-            content=f"User {accountinfo_name} has joined group."
-        )
-
-    return None, new_participant_by_group, joined_group_message
+        return f"User {accountinfo_name} already existed in group", None
+    new_participant_by_group = s_models.ParticipantByGroup.create(group_id=group_id,
+                                                                  accountinfo_id=accountinfo_id,
+                                                                  role=role)
+    s_models.ParticipantByAccount.create(accountinfo_id=accountinfo_id,
+                                         group_id=group_id,
+                                         role=role)
+    return None, new_participant_by_group
 
 
-def handle_remove_participant(group_id: uuid.UUID,
-                              accountinfo_id: int,
-                              group_name: str = None,
-                              accountinfo_name: str = None,
-                              with_notification: bool = False):
-    """Handle removing participant from group. Send back the left event if needed\n"""
+def handle_remove_participant(group_id: uuid.UUID, accountinfo_id: int, with_accountinfo=False) -> tuple[Any, p_models.Accountinfo | None]:
+    """Handle removing participant from group. Return error if needed\n"""
 
-    participant_by_group = s_models.ParticipantByGroup.objects.filter(group_id=group_id).filter(
+    existed_participant_by_group = s_models.ParticipantByGroup.objects.filter(group_id=group_id).filter(
         accountinfo_id=accountinfo_id).allow_filtering().first()
-    participant_by_account = s_models.ParticipantByAccount.objects.filter(accountinfo_id=accountinfo_id).filter(
-        group_id=group_id).allow_filtering().first()
-
-    if participant_by_group is not None:
-        if participant_by_group.role == s_models.CONSTANT.Participant_role[2]:
-            return "Cannot remove creator from group", None
-        participant_by_group.delete()
-    if participant_by_account is not None:
-        participant_by_account.delete()
-
-    left_group_message = None
-    if with_notification:
-        left_group_message = s_models.MessageByGroup.create(
-            group_id=group_id,
-            accountinfo_id=accountinfo_id,
-            group_name=group_name,
-            accountinfo_name=accountinfo_name,
-            type=s_models.CONSTANT.Message_type[2],
-            content=f"User {accountinfo_name} left group."
-        )
-
-    return None, left_group_message
+    existed_participant_by_account = s_models.ParticipantByGroup.objects.filter(group_id=group_id).filter(
+        accountinfo_id=accountinfo_id).allow_filtering().first()
+    if existed_participant_by_group is None:
+        return "User not existed in group", None
+    if existed_participant_by_group.role == s_models.CONSTANT.Participant_role[2]:
+        return "Cannot remove creator from group", None
+    accountinfo = None
+    if with_accountinfo:
+        with PostgresSession.begin() as session:
+            accountinfo = session.scalar(select(p_models.Accountinfo).where(p_models.Accountinfo.id == accountinfo_id))
+            session.expunge(accountinfo)
+    existed_participant_by_group.delete()
+    existed_participant_by_account.delete()
+    return None, accountinfo
 
 
-def handle_add_new_group(group_info: s_schemas.GroupPOST, accountinfo: p_models.Accountinfo,
-                         with_creation_notification: bool = True) -> \
-        tuple[Any, s_models.Group | None, s_models.MessageByGroup | None]:
+def handle_add_new_group(group_info: s_schemas.GroupPOST, accountinfo: p_models.Accountinfo) -> \
+        tuple[Any, s_models.Group | None]:
     """Create new group and assign creator for that group. Return error if existed.\n
     Return: (error, group_item, notification_message)"""
 
     ## Add new group_by_name, if needed later ##
     new_group = s_models.Group.create(**group_info.model_dump())
-    error, _, joined_message = handle_add_new_participant(new_group.id, accountinfo.id,
-                                                          role=s_models.CONSTANT.Participant_role[2],
-                                                          group_name=group_info.name,
-                                                          accountinfo_name=accountinfo.name,
-                                                          with_notification=with_creation_notification)
-    return error, new_group, joined_message
+    error, _ = handle_add_new_participant(new_group.id, accountinfo.id,
+                                          role=s_models.CONSTANT.Participant_role[2],
+                                          accountinfo_name=accountinfo.name)
+    return error, new_group
 
 
 def handle_get_personal_groups(accountinfo_id: int, before_time: datetime | None = None) -> list:
     """Get all joined groups and most recent messages\n
     Return: (message_list)"""
 
-    # participant_query = ScyllaSession.execute(
-    #     f"select last_updated, group_id from participant_by_account where accountinfo_id={accountinfo_id} group by group_id")
-    # participant_query = sorted(participant_query, key=lambda query_row: query_row['last_updated'], reverse=True)
-    #
-    # message_list = []
-    # for row in participant_query:
-    #     # group_query = session.execute(f"select * from group where id={row['group_id']}").one()
-    #     group_last_message = ScyllaSession.execute(
-    #         f"select * from message_by_group where group_id={row['group_id']} limit 1").one()
-    #     message_list.append(group_last_message)
-
     if before_time is None:
         before_time = datetime.utcnow()
     paging_state = None
-    user_lookup_stmt = SimpleStatement("select group_id from participant_by_account where accountinfo_id=%s and last_updated<%s", fetch_size=50)
+    user_lookup_stmt = SimpleStatement("select group_id from participant_by_account where accountinfo_id=%s and time_created<%s",
+                                       fetch_size=50)  # updated from last_updated to time_created
     group_lookup_stmt = SimpleStatement("select * from message_by_group where group_id=%s")
 
     existed_group = {}
