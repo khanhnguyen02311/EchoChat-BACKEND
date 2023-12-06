@@ -9,6 +9,10 @@ components/services/proto/*_pb2_grpc.py
 # File storage
 storage/
 
+# docker volumes
+etc/rabbitmq/data
+etc/rabbitmq/log
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
