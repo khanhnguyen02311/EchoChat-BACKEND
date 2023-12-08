@@ -10,7 +10,7 @@ class CONSTANT:
     Participant_role = ["Participant", "Admin", "Creator"]
     Message_type = ["Message", "File", "Event", "Other"]
     Groupattachment_type = ["Message", "Group"]
-    Notification_type = ["NewMessage", "GroupRequest", "Others"]
+    Notification_type = ["GroupEvent", "GroupRequest", "Others"]
 
 
 # ==============================================================================
@@ -156,7 +156,6 @@ class NotificationSeen(Model):
     group_id = columns.UUID(primary_key=True, clustering_order="DESC")
     time_created = columns.DateTime(primary_key=True, clustering_order="DESC", default=datetime.utcnow)
 
-    content = columns.Text(max_length=256, required=True)
     time_seen = columns.DateTime(default=datetime.utcnow)
 
 

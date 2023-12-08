@@ -6,6 +6,7 @@ from components.data import ScyllaSession
 from components.data.models import scylla_models as s_models, postgres_models as p_models
 from components.data.schemas import scylla_schemas as s_schemas
 from components.services.rabbitmq.services_rabbitmq import RabbitMQService
+from configurations.conf import Proto
 
 
 def handle_add_new_notification(accountinfo_id: int, group_id: uuid.UUID, notification_type: str, accountinfo_id_sender: int, content: str) -> \
@@ -18,7 +19,7 @@ def handle_add_new_notification(accountinfo_id: int, group_id: uuid.UUID, notifi
                                                         type=notification_type,
                                                         accountinfo_id_sender=accountinfo_id_sender,
                                                         content=content)
-        RabbitMQService.send_notification(new_notification)
+        RabbitMQService.send_data(routing=Proto.RMQ_ROUTING_KEY_NOTI, data=new_notification)
         return None, new_notification
     except Exception as e:
         return str(e), None
