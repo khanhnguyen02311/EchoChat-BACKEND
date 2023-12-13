@@ -63,3 +63,4 @@ class NotificationPOST(BaseORMModel):
     accountinfo_id: int | None = None
     content: constr(max_length=256)
     type: str = s_models.CONSTANT.Notification_type[0]
+    time_created: datetime | None = datetime.utcnow()

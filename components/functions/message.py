@@ -18,7 +18,7 @@ def handle_add_new_message(new_message: s_schemas.MessagePOST) -> \
         s_models.MessageByAccount.create(**new_message.model_dump())
         new_message_by_group = s_models.MessageByGroup.create(**new_message.model_dump())
         RabbitMQService.send_data(routing=Proto.RMQ_ROUTING_KEY_MSG,
-                                  data=s_schemas.MessageGET.model_validate(new_message_by_group).model_dump_json(exclude={"type", "group_name"}))
+                                  data=s_schemas.MessageGET.model_validate(new_message_by_group).model_dump_json())
         return None, new_message_by_group
     except Exception as e:
         return str(e), None

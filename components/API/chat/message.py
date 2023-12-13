@@ -43,19 +43,19 @@ async def add_new_message(message: s_schemas.MessagePOST,
                             detail=str(e))
 
 
-@router.delete("/delete")
-def delete_message(message: s_schemas.MessageMODIFY,
-                   accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
-    try:
-        message.accountinfo_name = accountinfo_token.name
-        error, new_group_message = handle_add_new_message(message)
-        if error is not None:
-            raise Exception(error)
-        return "Done"
-
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=str(e))
+# @router.delete("/delete")
+# def delete_message(message: s_schemas.MessageMODIFY,
+#                    accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)]):
+#     try:
+#         message.accountinfo_name = accountinfo_token.name
+#         error, new_group_message = handle_add_new_message(message)
+#         if error is not None:
+#             raise Exception(error)
+#         return "Done"
+#
+#     except Exception as e:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+#                             detail=str(e))
 
 
 # TODO: working with pin transactions

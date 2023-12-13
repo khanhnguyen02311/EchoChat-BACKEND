@@ -157,7 +157,7 @@ async def delete_group_participant(
                               group_name=group.name,
                               accountinfo_name=accountinfo_token.name,
                               type=s_models.CONSTANT.Message_type[2],
-                              content=f"User {accountinfo_token.name} removed {deleted_user.name if deleted_user is not None else 'NONAME'} from the group."))
+                              content=f"User {accountinfo_token.name} removed {deleted_user.name if deleted_user is not None else 'a participant'} from the group."))
     if error is not None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=error)
