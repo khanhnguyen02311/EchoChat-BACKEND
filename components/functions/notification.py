@@ -9,24 +9,16 @@ from components.services.rabbitmq.services_rabbitmq import RabbitMQService
 from configurations.conf import Proto
 
 
-def handle_add_new_notification(accountinfo_id: int, group_id: uuid.UUID, notification_type: str, accountinfo_id_sender: int, content: str) -> \
+def handle_add_new_notification(notification: s_schemas.NotificationPOST) -> \
         tuple[Any, s_models.Notification | None]:
     """Create new notification for provided account and group pair. Return error if needed. \n
     Return: (error, new_notification)"""
     try:
-        new_notification = s_models.Notification.create(accountinfo_id=accountinfo_id,
-                                                        group_id=group_id,
-                                                        type=notification_type,
-                                                        accountinfo_id_sender=accountinfo_id_sender,
-                                                        content=content)
+        new_notification = s_models.Notification.create(**notification.model_dump())
         RabbitMQService.send_data(routing=Proto.RMQ_ROUTING_KEY_NOTI, data=new_notification)
         return None, new_notification
     except Exception as e:
         return str(e), None
-
-
-def handle_send_notifications_to_group(accountinfo_id: int, group_id: uuid.UUID, notification_type: str, content: str):
-    pass
 
 
 def handle_check_seen_notification(accountinfo_id: int, group_id: uuid.UUID, notification_type: str, last_seen_time: datetime) -> \
