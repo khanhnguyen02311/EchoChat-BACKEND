@@ -49,7 +49,7 @@ class BEServicerRMQ(object):
     # https://stackoverflow.com/questions/70889479/how-to-use-pika-with-fastapis-asyncio-loop
     def __init__(self):
         self._credentials = pika.PlainCredentials(Proto.RMQ_USR, Proto.RMQ_PWD)
-        self._parameters = pika.ConnectionParameters('localhost', Proto.RMQ_PORT, "/", self._credentials)  # heartbeat=600, blocked_connection_timeout=300
+        self._parameters = pika.ConnectionParameters(Proto.RMQ_HOST, Proto.RMQ_PORT, "/", self._credentials)  # heartbeat=600, blocked_connection_timeout=300
         self._properties = pika.BasicProperties(app_id='EchoChat-BE',
                                                 content_type='application/json')
         self._connection = None

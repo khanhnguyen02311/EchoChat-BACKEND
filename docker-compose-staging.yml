@@ -15,6 +15,7 @@ services:
       - db-scylla-1
       - db-scylla-2
       - db-scylla-3
+      - proto-rabbitmq
     env_file:
       - .env.staging
     ports:
@@ -120,6 +121,8 @@ services:
   obsv-prometheus:
     image: prom/prometheus
     restart: unless-stopped
+    depends_on:
+      - app
     ports:
       - '127.0.0.1:9091:9091'
     volumes:
@@ -127,6 +130,7 @@ services:
     command: --config.file=/etc/prometheus/prometheus.yml --web.listen-address=:9091
     networks:
       - network-1
+
 
   proto-rabbitmq:
     image: rabbitmq:3-management
@@ -137,6 +141,7 @@ services:
       - ./etc/rabbitmq/data/:/var/lib/rabbitmq/mnesia
       - ./etc/rabbitmq/log/:/var/log/rabbitmq
       - ./etc/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+
 
 networks:
   network-1:
