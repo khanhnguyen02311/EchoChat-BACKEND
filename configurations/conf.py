@@ -56,8 +56,8 @@ class Proto:
     RMQ_PORT = int(environ.get("PROTO_RMQ_PORT"))
     RMQ_USR = environ.get("PROTO_RMQ_USR")
     RMQ_PWD = environ.get("PROTO_RMQ_PWD")
+    RMQ_QUEUE_NOTI = environ.get("PROTO_RMQ_QUEUE_NOTI")
+    RMQ_QUEUE_MSG = environ.get("PROTO_RMQ_QUEUE_MSG")
     RMQ_EXCHANGE = "EchoChatBE"
     RMQ_ROUTING_KEY_NOTI = "notification"
     RMQ_ROUTING_KEY_MSG = "message"
-    RMQ_QUEUE_NOTI = "queue_notifications"
-    RMQ_QUEUE_MSG = "queue_messages"

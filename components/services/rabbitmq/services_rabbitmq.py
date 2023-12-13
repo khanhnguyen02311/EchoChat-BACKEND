@@ -87,7 +87,7 @@ class BEServicerRMQ(object):
 
     def setup_exchange(self, exchange_name):
         # print("setup exchange " + exchange_name)
-        self._channel.exchange_declare(exchange=exchange_name, exchange_type="direct", callback=self.on_exchange_declare_ok)
+        self._channel.exchange_declare(exchange=exchange_name, exchange_type="direct", durable=True, callback=self.on_exchange_declare_ok)
 
     def on_exchange_declare_ok(self, _unused_frame):
         # print("exchange declared")

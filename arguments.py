@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--stage", help="specify the development stage (dev/staging/prod)", type=str)
-parser.add_argument("--debug", help="application debug mode (True/False), default: False", type=bool, default=False)
+parser.add_argument("--debug", help="application debug mode (True/False), default: True", type=bool, default=True)
 args = parser.parse_args()
 
 if args.stage not in ["dev", "staging", "prod"]:
