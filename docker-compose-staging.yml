@@ -128,6 +128,16 @@ services:
     networks:
       - network-1
 
+  proto-rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - '127.0.0.1:${PROTO_RMQ_PORT}:5672'
+      - '127.0.0.1:15672:15672'
+    volumes:
+      - ./etc/rabbitmq/data/:/var/lib/rabbitmq/mnesia
+      - ./etc/rabbitmq/log/:/var/log/rabbitmq
+      - ./etc/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+
 networks:
   network-1:
     driver: bridge
