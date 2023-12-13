@@ -1,9 +1,13 @@
+from faker import Faker
 import string
 import random
 
+faker = Faker()
+
 
 def name():
-    return ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+    return faker.name()
+    # return ''.join(random.choices(string.ascii_letters + string.digits, k=16))
 
 
 def identifier():

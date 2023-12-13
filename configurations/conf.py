@@ -4,7 +4,6 @@ from arguments import args
 
 class Env:
     APP_PORT_API = int(environ.get("APP_PORT_API"))
-    APP_PORT_GRPC = int(environ.get("APP_PORT_GRPC"))
     APP_FRONTEND_URLS = environ.get("APP_FRONTEND_URLS")
     APP_DEBUG = args.debug
     APP_STAGE = args.stage
@@ -49,3 +48,16 @@ class Scylla:
 class Observability:
     TRACING_ENDPOINT = "0.0.0.0:" + environ.get("OBSERVABILITY_TRACING_PORT")
     OBSERVABILITY_SERVICE_NAME = environ.get("OBSERVABILITY_SERVICE_NAME")
+
+
+class Proto:
+    GRPC_PORT = int(environ.get("PROTO_GRPC_PORT"))
+
+    RMQ_PORT = int(environ.get("PROTO_RMQ_PORT"))
+    RMQ_USR = environ.get("PROTO_RMQ_USR")
+    RMQ_PWD = environ.get("PROTO_RMQ_PWD")
+    RMQ_QUEUE_NOTI = environ.get("PROTO_RMQ_QUEUE_NOTI")
+    RMQ_QUEUE_MSG = environ.get("PROTO_RMQ_QUEUE_MSG")
+    RMQ_EXCHANGE = "EchoChatBE"
+    RMQ_ROUTING_KEY_NOTI = "notification"
+    RMQ_ROUTING_KEY_MSG = "message"

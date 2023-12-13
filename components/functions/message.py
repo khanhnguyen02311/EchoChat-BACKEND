@@ -1,28 +1,45 @@
+import json
 import uuid
 from datetime import datetime
 from typing import Any
+from configurations.conf import Proto
 from components.data import ScyllaSession as session
 from components.data.models import scylla_models as s_models, postgres_models as p_models
 from components.data.schemas import scylla_schemas as s_schemas
-from components.functions.group import handle_check_joined_participant, handle_check_existed_group
+from components.services.rabbitmq.services_rabbitmq import RabbitMQService
 
 
-def handle_add_new_message(new_message: s_schemas.MessagePOST,
-                           need_group_name: bool = True) -> \
+def handle_add_new_message(new_message: s_schemas.MessagePOST) -> \
         tuple[Any, s_models.MessageByGroup | None]:
     """Add new message for provided account and group pair. Return error if needed. \n
     Return: (error, new_message)"""
 
-    existed, participant = handle_check_joined_participant(new_message.group_id, new_message.accountinfo_id)
-    if not existed:
-        return "You are not a participant of the group", None
-    if need_group_name:
-        existed, group = handle_check_existed_group(new_message.group_id, allow_private_groups=True)
-        if not existed:
-            return "Group not found", None
-        new_message.group_name = group.name
-    s_models.MessageByAccount.create(**new_message.model_dump())
-    new_message_by_group = s_models.MessageByGroup.create(**new_message.model_dump())
-    return None, new_message_by_group
+    try:
+        s_models.MessageByAccount.create(**new_message.model_dump())
+        new_message_by_group = s_models.MessageByGroup.create(**new_message.model_dump())
+        RabbitMQService.send_data(routing=Proto.RMQ_ROUTING_KEY_MSG,
+                                  data=s_schemas.MessageGET.model_validate(new_message_by_group).model_dump_json())
+        return None, new_message_by_group
+    except Exception as e:
+        return str(e), None
 
-# def handle_remove_message(message: s_schemas.MessageMODIFY,
+
+def handle_remove_message(message: s_schemas.MessageMODIFY, accountinfo_id: int) -> Any:
+    """Remove message for provided account and group pair. Return error if needed. \n
+    Return: (error, new_message)"""
+
+    try:
+        existed_message_by_group = s_models.MessageByGroup.objects \
+            .filter(group_id=message.group_id) \
+            .filter(time_created=message.time_created) \
+            .filter(accountinfo_id=accountinfo_id).first()
+        if message is None:
+            return "Message not existed or not belong to this account"
+
+        existed_message_by_group.delete()
+        s_models.MessageByAccount.objects.filter(group_id=message.group_id) \
+            .filter(time_created=message.time_created) \
+            .filter(accountinfo_id=accountinfo_id).delete()
+        return None
+    except Exception as e:
+        return str(e)

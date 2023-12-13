@@ -10,6 +10,10 @@ from components.functions.message import handle_add_new_message
 from components.functions.group import handle_get_all_participants, handle_check_existed_group
 
 
+# ----------------------------------------
+# Now unsupported, use EchoChat-WS instead
+# ----------------------------------------
+
 class ConnMsgType(str, Enum):
     message = "message"
     notification = "notification"

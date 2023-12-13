@@ -1,0 +1,17 @@
+// python -m grpc_tools.protoc -I. --python_out=. --pyi_out=. --grpc_python_out=. ./components/services/proto/EchoChat.proto
+
+syntax = "proto3";
+
+service EchoChatBE {
+  rpc ValidateToken(TokenValue) returns (AccountinfoValue) {}
+}
+
+message TokenValue {
+  string token = 1;
+}
+
+message AccountinfoValue {
+  int32 id = 1;
+  string name = 2;
+  int32 identifier = 3;
+}

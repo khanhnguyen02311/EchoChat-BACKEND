@@ -10,6 +10,7 @@ class CONSTANT:
     Participant_role = ["Participant", "Admin", "Creator"]
     Message_type = ["Message", "File", "Event", "Other"]
     Groupattachment_type = ["Message", "Group"]
+    Notification_type = ["GroupEvent", "GroupRequest", "Others"]
 
 
 # ==============================================================================
@@ -41,11 +42,11 @@ class GroupByName(Model):
 # ==============================================================================
 class ParticipantByAccount(Model):
     """Store participant info, use for querying latest group activities of specific account \n
-    Primary key: \n ((accountinfo_id), group_id, last_updated) \n
+    Primary key: \n ((accountinfo_id), group_id, time_created) \n
     with group_id DESC, last_updated DESC"""
 
     accountinfo_id = columns.Integer(primary_key=True)
-    last_updated = columns.DateTime(primary_key=True, clustering_order="DESC", default=datetime.utcnow)
+    time_created = columns.DateTime(primary_key=True, clustering_order="DESC", default=datetime.utcnow)  # updated from last_updated to time_created
     group_id = columns.UUID(primary_key=True, clustering_order="DESC")
 
     notify = columns.Boolean(default=True)
@@ -118,8 +119,8 @@ class MessagePinned(Model):
 # ==============================================================================
 class Groupattachment(Model):
     """Store group attachment info, used for normal file operations \n
-    Primary key: \n ((group_id), type, time_created) \n
-    with type DESC, time_created DESC"""
+    Primary key: \n ((group_id), type, filename) \n
+    with type DESC, filename DESC"""
 
     group_id = columns.UUID(primary_key=True)
     type = columns.Text(primary_key=True, clustering_order="DESC",
@@ -127,6 +128,35 @@ class Groupattachment(Model):
     filename = columns.Text(primary_key=True, clustering_order="DESC")
 
     time_created = columns.DateTime(default=datetime.utcnow)
+
+
+# ==============================================================================
+class Notification(Model):
+    """Store all notifications based on notification type \n
+    Primary key: \n ((accountinfo_id), type, time_created, group_id) \n
+    with time_created DESC, group_id DESC"""
+
+    accountinfo_id = columns.Integer(primary_key=True)
+    type = columns.Text(primary_key=True, max_length=15, default=CONSTANT.Notification_type[0])
+    time_created = columns.DateTime(primary_key=True, clustering_order="DESC", default=datetime.utcnow)
+    group_id = columns.UUID(primary_key=True, clustering_order="DESC")
+
+    accountinfo_id_sender = columns.Integer(required=True)
+    content = columns.Text(max_length=256, required=True)
+
+
+# ==============================================================================
+class NotificationSeen(Model):
+    """Store notifications seen by account \n
+    Primary key: \n ((accountinfo_id), type, group_id, time_created) \n
+    with type ASC, group_id DESC, time_created DESC"""
+
+    accountinfo_id = columns.Integer(primary_key=True)
+    type = columns.Text(primary_key=True, max_length=15, default=CONSTANT.Notification_type[0])
+    group_id = columns.UUID(primary_key=True, clustering_order="DESC")
+    time_created = columns.DateTime(primary_key=True, clustering_order="DESC", default=datetime.utcnow)
+
+    time_seen = columns.DateTime(default=datetime.utcnow)
 
 
 # ==============================================================================
@@ -139,3 +169,5 @@ def sync_tables():
     sync_table(MessageByGroup)
     sync_table(MessageByAccount)
     sync_table(MessagePinned)
+    sync_table(Notification)
+    sync_table(NotificationSeen)
