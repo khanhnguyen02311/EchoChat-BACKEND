@@ -53,6 +53,7 @@ class Observability:
 class Proto:
     GRPC_PORT = int(environ.get("PROTO_GRPC_PORT"))
 
+    RMQ_HOST = environ.get("PROTO_RMQ_HOST")
     RMQ_PORT = int(environ.get("PROTO_RMQ_PORT"))
     RMQ_USR = environ.get("PROTO_RMQ_USR")
     RMQ_PWD = environ.get("PROTO_RMQ_PWD")
