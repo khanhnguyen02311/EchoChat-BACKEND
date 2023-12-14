@@ -134,6 +134,7 @@ services:
 
   proto-rabbitmq:
     image: rabbitmq:3-management
+    restart: unless-stopped
     ports:
       - '127.0.0.1:${PROTO_RMQ_PORT}:5672'
       - '127.0.0.1:15672:15672'
@@ -141,6 +142,7 @@ services:
       - ./etc/rabbitmq/data/:/var/lib/rabbitmq/mnesia
       - ./etc/rabbitmq/log/:/var/log/rabbitmq
       - ./etc/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./etc/rabbitmq/definitions-rabbitmq.json:/etc/rabbitmq/definitions-rabbitmq.json
 
 
 networks:
