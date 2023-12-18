@@ -13,8 +13,8 @@ services:
       - db-postgres
       - db-redis
       - db-scylla-1
-      #      - db-scylla-2
-      #      - db-scylla-3
+      - db-scylla-2
+      - db-scylla-3
       - proto-rabbitmq
     env_file:
       - .env.staging
@@ -88,34 +88,34 @@ services:
       - network-1
 
 
-  #  db-scylla-2:
-  #    image: scylladb/scylla
-  #    restart: unless-stopped
-  #    depends_on:
-  #      - db-scylla-1
-  #    ports:
-  #      - '127.0.0.1:9043:9042'
-  #    #    volumes:
-  #    #      - "./etc/scylla-2/scylla.yaml:/etc/scylla/scylla.yaml"
-  #    #      - "./etc/scylla-2/cassandra-rackdc.properties.dc1:/etc/scylla/cassandra-rackdc.properties"
-  #    command: --smp 1 --memory 1500M --overprovisioned 1 --seeds=db-scylla-1
-  #    networks:
-  #      - network-1
-  #
-  #
-  #  db-scylla-3:
-  #    image: scylladb/scylla
-  #    restart: unless-stopped
-  #    depends_on:
-  #      - db-scylla-1
-  #    ports:
-  #      - '127.0.0.1:9044:9042'
-  #    #    volumes:
-  #    #      - "./etc/scylla-3/scylla.yaml:/etc/scylla/scylla.yaml"
-  #    #      - "./etc/scylla-3/cassandra-rackdc.properties.dc1:/etc/scylla/cassandra-rackdc.properties"
-  #    command: --smp 1 --memory 1500M --overprovisioned 1 --seeds=db-scylla-1
-  #    networks:
-  #      - network-1
+  db-scylla-2:
+    image: scylladb/scylla
+    restart: unless-stopped
+    depends_on:
+      - db-scylla-1
+    ports:
+      - '127.0.0.1:9043:9042'
+    #    volumes:
+    #      - "./etc/scylla-2/scylla.yaml:/etc/scylla/scylla.yaml"
+    #      - "./etc/scylla-2/cassandra-rackdc.properties.dc1:/etc/scylla/cassandra-rackdc.properties"
+    command: --smp 1 --memory 1500M --overprovisioned 1 --seeds=db-scylla-1
+    networks:
+      - network-1
+
+
+  db-scylla-3:
+    image: scylladb/scylla
+    restart: unless-stopped
+    depends_on:
+      - db-scylla-1
+    ports:
+      - '127.0.0.1:9044:9042'
+    #    volumes:
+    #      - "./etc/scylla-3/scylla.yaml:/etc/scylla/scylla.yaml"
+    #      - "./etc/scylla-3/cassandra-rackdc.properties.dc1:/etc/scylla/cassandra-rackdc.properties"
+    command: --smp 1 --memory 1500M --overprovisioned 1 --seeds=db-scylla-1
+    networks:
+      - network-1
 
 
   obsv-prometheus:
