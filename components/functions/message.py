@@ -2,11 +2,25 @@ import json
 import uuid
 from datetime import datetime
 from typing import Any
+
+from cassandra.query import SimpleStatement
+
 from configurations.conf import Proto
 from components.data import ScyllaSession as session
 from components.data.models import scylla_models as s_models, postgres_models as p_models
 from components.data.schemas import scylla_schemas as s_schemas
 from components.services.rabbitmq.services_rabbitmq import RabbitMQService
+
+
+def handle_get_messages_from_group(group_id: uuid.UUID, before_time: datetime | None = None) -> list:
+    """Get messages from group\n
+    Return: (message_list)"""
+
+    if before_time is None:
+        before_time = datetime.utcnow()
+    message_lookup_stmt = SimpleStatement(f"select * from message_by_group where group_id=%s and time_created<%s limit 10")
+    messages = session.execute(message_lookup_stmt, [group_id, before_time])
+    return messages
 
 
 def handle_add_new_message(new_message: s_schemas.MessagePOST) -> \

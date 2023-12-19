@@ -1,11 +1,12 @@
+from datetime import datetime
 import uuid
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from components.functions.security import handle_get_current_accountinfo
 from components.data import PostgresSession
 from components.functions.group import handle_check_joined_participant, handle_check_existed_group
-from components.functions.message import handle_add_new_message
-from components.data.models import postgres_models as p_models, scylla_models as s_models
+from components.functions.message import handle_add_new_message, handle_get_messages_from_group
+from components.data.models import postgres_models as p_models
 from components.data.schemas import scylla_schemas as s_schemas, postgres_schemas as p_schemas
 
 router = APIRouter(prefix="/group/{group_id}/messages")
@@ -13,10 +14,10 @@ router = APIRouter(prefix="/group/{group_id}/messages")
 
 @router.get("/all")
 def get_message_list(accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)],
-                     group_id: uuid.UUID):
+                     group_id: uuid.UUID, before_time: datetime | None = None):
 
     if handle_check_joined_participant(group_id, accountinfo_token.id)[0]:
-        message_list = s_models.MessageByGroup.objects.filter(group_id=group_id).all()
+        message_list = handle_get_messages_from_group(group_id, before_time)
         return message_list[:]
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,

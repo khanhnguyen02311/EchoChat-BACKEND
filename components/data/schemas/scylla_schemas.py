@@ -50,6 +50,7 @@ class MessagePOST(BaseORMModel):
     type: str = s_models.CONSTANT.Message_type[0]
     group_name: str | None = None
     accountinfo_name: str | None = None
+    time_created: datetime = datetime.utcnow()
 
 
 class MessageMODIFY(BaseORMModel):
