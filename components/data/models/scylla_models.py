@@ -46,8 +46,8 @@ class ParticipantByAccount(Model):
     with group_id DESC, last_updated DESC"""
 
     accountinfo_id = columns.Integer(primary_key=True)
-    time_created = columns.DateTime(primary_key=True, clustering_order="DESC", default=datetime.utcnow)  # updated from last_updated to time_created
     group_id = columns.UUID(primary_key=True, clustering_order="DESC")
+    time_created = columns.DateTime(primary_key=True, clustering_order="DESC", default=datetime.utcnow)
 
     notify = columns.Boolean(default=True)
     role = columns.Text(max_length=15, default=CONSTANT.Participant_role[0])
