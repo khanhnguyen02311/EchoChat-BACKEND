@@ -1,13 +1,10 @@
-import json
 import uuid
 from datetime import datetime
 from typing import Any
-
 from cassandra.query import SimpleStatement
-
 from configurations.conf import Proto
 from components.data import ScyllaSession as session
-from components.data.models import scylla_models as s_models, postgres_models as p_models
+from components.data.models import scylla_models as s_models
 from components.data.schemas import scylla_schemas as s_schemas
 from components.services.rabbitmq.services_rabbitmq import RabbitMQService
 
@@ -57,3 +54,48 @@ def handle_remove_message(message: s_schemas.MessageMODIFY, accountinfo_id: int)
         return None
     except Exception as e:
         return str(e)
+
+
+def handle_get_pinned_messages(group_id: uuid.UUID) -> list:
+    """Get pinned messages from group\n
+    Return: (message_list)"""
+
+    pinned_messages = s_models.MessagePinned.objects.filter(group_id=group_id).all()
+    return pinned_messages
+
+
+def handle_pin_message(message: s_schemas.MessageMODIFY) -> tuple[Any, s_models.MessageByGroup | None]:
+    """Pin message for provided account and group pair. Return error if needed. \n
+    Return: (error, new_message)"""
+
+    try:
+        existed_message_by_group = s_models.MessageByGroup.objects \
+            .filter(group_id=message.group_id) \
+            .filter(time_created=message.time_created) \
+            .filter(accountinfo_id=message.accountinfo_id).first()
+        if existed_message_by_group is None:
+            return "Message not found", None
+        s_models.MessagePinned.create(**s_schemas.MessageGET.model_validate(existed_message_by_group).model_dump())
+        return None, existed_message_by_group
+
+    except Exception as e:
+        return str(e), None
+
+
+def handle_unpin_message(message: s_schemas.MessageMODIFY) -> tuple[Any, s_schemas.MessageGET | None]:
+    """Unpin message for provided account and group pair. Return error if needed. \n
+    Return: (error, new_message)"""
+
+    try:
+        existed_message_pinned = s_models.MessagePinned.objects \
+            .filter(group_id=message.group_id) \
+            .filter(time_created=message.time_created) \
+            .filter(accountinfo_id=message.accountinfo_id).first()
+        if existed_message_pinned is None:
+            return "Message not found", None
+        message = s_schemas.MessageGET.model_validate(existed_message_pinned)
+        existed_message_pinned.delete()
+        return None, message
+
+    except Exception as e:
+        return str(e), None

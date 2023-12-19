@@ -156,8 +156,6 @@ class NotificationSeen(Model):
     group_id = columns.UUID(primary_key=True, clustering_order="DESC")
     time_created = columns.DateTime(primary_key=True, clustering_order="DESC", default=datetime.utcnow)
 
-    time_seen = columns.DateTime(default=datetime.utcnow)
-
 
 # ==============================================================================
 def sync_tables():
