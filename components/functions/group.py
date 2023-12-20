@@ -80,8 +80,10 @@ def handle_remove_participant(group_id: uuid.UUID, accountinfo_id: int, with_acc
         with PostgresSession.begin() as session:
             accountinfo = session.scalar(select(p_models.Accountinfo).where(p_models.Accountinfo.id == accountinfo_id))
             session.expunge(accountinfo)
-    s_models.ParticipantByGroup.objects \
-        .filter(group_id=group_id).filter(time_created=existed_participant_by_account.time_created).filter(accountinfo_id=accountinfo_id).first().delete()
+    existed_participant_by_group = s_models.ParticipantByGroup.objects \
+        .filter(group_id=group_id).filter(time_created=existed_participant_by_account.time_created).filter(accountinfo_id=accountinfo_id).first()
+    if existed_participant_by_group is not None:
+        existed_participant_by_group.delete()
     existed_participant_by_account.delete()
     return None, accountinfo
 
