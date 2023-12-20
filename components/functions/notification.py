@@ -14,6 +14,8 @@ def handle_add_new_notification(notification: s_schemas.NotificationPOST) -> \
     """Create new notification for provided account and group pair. Return error if needed. \n
     Return: (error, new_notification)"""
     try:
+        if notification.time_created is None:
+            notification.time_created = datetime.utcnow()
         new_notification = s_models.Notification.create(**notification.model_dump())
         RabbitMQService.send_data(routing=Proto.RMQ_ROUTING_KEY_NOTI, data=new_notification)
         return None, new_notification

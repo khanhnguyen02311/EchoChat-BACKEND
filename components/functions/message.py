@@ -26,6 +26,8 @@ def handle_add_new_message(new_message: s_schemas.MessagePOST) -> \
     Return: (error, new_message)"""
 
     try:
+        if new_message.time_created is None:
+            new_message.time_created = datetime.utcnow()
         s_models.MessageByAccount.create(**new_message.model_dump())
         new_message_by_group = s_models.MessageByGroup.create(**new_message.model_dump())
         RabbitMQService.send_data(routing=Proto.RMQ_ROUTING_KEY_MSG,
