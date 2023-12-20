@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from configurations.conf import Proto
 from components.functions.security import handle_get_current_accountinfo
-from components.functions.group import handle_add_new_group, handle_get_personal_groups, handle_add_new_participant, \
+from components.functions.group import handle_add_new_group, handle_get_recent_groups, handle_add_new_participant, \
     handle_check_joined_participant, handle_check_existed_group, handle_get_all_participants, handle_remove_participant
 from components.functions.message import handle_add_new_message
 from components.functions.notification import handle_check_seen_notification, handle_add_new_notification
@@ -22,14 +22,14 @@ router = APIRouter(prefix="/group")
 def get_recent_groups(accountinfo_token: Annotated[p_models.Accountinfo, Depends(handle_get_current_accountinfo)], before_time: str | None = None):
     try:
         formatted_time = datetime.strptime(before_time, "%Y-%m-%dT%H:%M:%S.%f") if before_time is not None else None
-        message_list = handle_get_personal_groups(accountinfo_token.id, before_time=formatted_time)
-        for message in message_list:
+        recent_list = handle_get_recent_groups(accountinfo_token.id, before_time=formatted_time)
+        for message in recent_list:
             # get seen status
             message["seen_status"] = handle_check_seen_notification(accountinfo_token.id,
                                                                     message["group_id"],
                                                                     s_models.CONSTANT.Notification_type[0],
                                                                     message["time_created"])[0]
-        return message_list
+        return recent_list
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=str(e))

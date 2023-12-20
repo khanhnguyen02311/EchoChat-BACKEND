@@ -21,7 +21,7 @@ def handle_add_new_notification(notification: s_schemas.NotificationPOST) -> \
         return str(e), None
 
 
-def handle_check_seen_notification(accountinfo_id: int, group_id: uuid.UUID, notification_type: str, last_seen_time: datetime) -> \
+def handle_check_seen_notification(accountinfo_id: int, group_id: uuid.UUID, notification_type: str, last_message_time: datetime) -> \
         tuple[bool, s_models.NotificationSeen | None]:
     """Check if notification is seen (most recent seen notification is after the specified time) \n
     Return: (result, notification_seen_item)"""
@@ -30,7 +30,7 @@ def handle_check_seen_notification(accountinfo_id: int, group_id: uuid.UUID, not
         .filter(accountinfo_id=accountinfo_id) \
         .filter(type=notification_type) \
         .filter(group_id=group_id).first()
-    if notification_seen is not None and notification_seen.time_created >= last_seen_time:
+    if notification_seen is not None and notification_seen.time_created >= last_message_time:
         return True, notification_seen
     return False, None
 

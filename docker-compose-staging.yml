@@ -20,7 +20,7 @@ services:
       - .env.staging
     ports:
       - "127.0.0.1:20011:${APP_PORT_API}" # HTTP API
-      - "127.0.0.1:20012:${PROTO_GRPC_PORT}" # gRPC API
+      # - "127.0.0.1:20012:${PROTO_GRPC_PORT}" # gRPC API
     #    environment:
     #      - 'APP_NAME=${OBSERVABILITY_SERVICE_NAME}'
     #      - OTEL_PYTHON_LOG_CORRELATION="true"
@@ -39,7 +39,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "127.0.0.1:20013:1323"
+      - "127.0.0.1:20012:1323"
     volumes:
       - ./storage:/app/files
     networks:
@@ -124,10 +124,10 @@ services:
     depends_on:
       - app
     ports:
-      - '127.0.0.1:9091:9091'
+      - '127.0.0.1:9091:9090'
     volumes:
       - ./etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    command: --config.file=/etc/prometheus/prometheus.yml --web.listen-address=:9091
+    command: --config.file=/etc/prometheus/prometheus.yml
     networks:
       - network-1
 
