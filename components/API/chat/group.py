@@ -9,7 +9,7 @@ from components.functions.security import handle_get_current_accountinfo
 from components.functions.group import handle_add_new_group, handle_get_recent_groups, handle_add_new_participant, \
     handle_check_joined_participant, handle_check_existed_group, handle_get_all_participants, handle_remove_participant
 from components.functions.message import handle_add_new_message
-from components.functions.notification import handle_check_seen_notification, handle_add_new_notification
+from components.functions.notification import handle_check_seen_notification
 from components.data import PostgresSession
 from components.data.models import postgres_models as p_models, scylla_models as s_models
 from components.data.schemas import scylla_schemas as s_schemas, postgres_schemas as p_schemas

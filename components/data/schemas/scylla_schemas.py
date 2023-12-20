@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from pydantic import constr
+from pydantic import constr, Field
 from . import BaseORMModel, BaseListModel
 from ..models import scylla_models as s_models
 
@@ -50,7 +50,7 @@ class MessagePOST(BaseORMModel):
     type: str = s_models.CONSTANT.Message_type[0]
     group_name: str | None = None
     accountinfo_name: str | None = None
-    time_created: datetime = datetime.utcnow()
+    time_created: datetime = Field(default_factory=datetime.utcnow)
 
 
 class MessageMODIFY(BaseORMModel):
@@ -64,4 +64,4 @@ class NotificationPOST(BaseORMModel):
     accountinfo_id: int | None = None
     content: constr(max_length=256)
     type: str = s_models.CONSTANT.Notification_type[0]
-    time_created: datetime | None = datetime.utcnow()
+    time_created: datetime = Field(default_factory=datetime.utcnow)
