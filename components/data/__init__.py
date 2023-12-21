@@ -11,6 +11,7 @@ from .models import postgres_models, scylla_models
 # For PostgresSQL
 Engine = create_engine(url=Postgres.DB_URL, echo=SQLAlchemy.ECHO, pool_size=SQLAlchemy.POOL_SIZE,
                        max_overflow=SQLAlchemy.MAX_OVERFLOW, pool_pre_ping=SQLAlchemy.POOL_PRE_PING)
+postgres_models.Base.metadata.drop_all(Engine)
 postgres_models.Base.metadata.create_all(Engine)
 PostgresSession = sessionmaker(bind=Engine, autoflush=SQLAlchemy.AUTO_FLUSH, autocommit=SQLAlchemy.AUTO_COMMIT)
 
@@ -28,7 +29,7 @@ profile = ExecutionProfile(
 
 connection.setup([Scylla.DB_HOST], Scylla.DB_KEYSPACE,
                  execution_profiles={EXEC_PROFILE_DEFAULT: profile}, port=Scylla.DB_PORT)
-# connection.execute(f"DROP KEYSPACE IF EXISTS {Scylla.DB_KEYSPACE}")
+connection.execute(f"DROP KEYSPACE IF EXISTS {Scylla.DB_KEYSPACE}")
 connection.execute(
     f"CREATE KEYSPACE IF NOT EXISTS {Scylla.DB_KEYSPACE} WITH replication = " +
     f"{{'class': 'NetworkTopologyStrategy', 'replication_factor': {Scylla.DB_REPLICATION_FACTOR}}}")

@@ -64,7 +64,7 @@ def get_pinned_messages(group_id: uuid.UUID, accountinfo_token: Annotated[p_mode
     if not handle_check_joined_participant(group_id, accountinfo_token.id)[0]:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="You are not a participant of the group")
-    pinned_messages = handle_get_pinned_messages(group_id, accountinfo_token.id)
+    pinned_messages = handle_get_pinned_messages(group_id)
     return pinned_messages[:]
 
 

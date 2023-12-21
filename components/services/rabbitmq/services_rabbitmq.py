@@ -50,8 +50,7 @@ class BEServicerRMQ(object):
     def __init__(self):
         self._credentials = pika.PlainCredentials(Proto.RMQ_USR, Proto.RMQ_PWD)
         self._parameters = pika.ConnectionParameters(Proto.RMQ_HOST, Proto.RMQ_PORT, "/", self._credentials)  # heartbeat=600, blocked_connection_timeout=300
-        self._properties = pika.BasicProperties(app_id='EchoChat-BE',
-                                                content_type='application/json')
+        self._properties = pika.BasicProperties(content_type='application/json')
         self._connection = None
         self._channel = None
 
