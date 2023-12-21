@@ -47,8 +47,8 @@ def handle_add_new_participant(group_id: uuid.UUID,
                                accountinfo_id: int,
                                role: str = s_models.CONSTANT.Participant_role[0],
                                accountinfo_name: str = None) -> tuple[Any, s_models.ParticipantByGroup | None]:
-    """Handle adding new participant to group. Send back the joined event if needed\n
-    Return: (error, participant_item, joined_message_item)"""
+    """Handle adding new participant to group\n
+    Return: (error, participant_item)"""
 
     # check if participant exists
     participant = s_models.ParticipantByAccount.objects.filter(group_id=group_id).filter(accountinfo_id=accountinfo_id).first()
@@ -91,7 +91,7 @@ def handle_remove_participant(group_id: uuid.UUID, accountinfo_id: int, with_acc
 def handle_add_new_group(group_info: s_schemas.GroupPOST, accountinfo: p_models.Accountinfo) -> \
         tuple[Any, s_models.Group | None]:
     """Create new group and assign creator for that group. Return error if existed.\n
-    Return: (error, group_item, notification_message)"""
+    Return: (error, group_item)"""
 
     ## Add new group_by_name, if needed later ##
     new_group = s_models.Group.create(**group_info.model_dump())

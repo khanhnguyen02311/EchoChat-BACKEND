@@ -11,6 +11,7 @@ from .models import postgres_models, scylla_models
 # For PostgresSQL
 Engine = create_engine(url=Postgres.DB_URL, echo=SQLAlchemy.ECHO, pool_size=SQLAlchemy.POOL_SIZE,
                        max_overflow=SQLAlchemy.MAX_OVERFLOW, pool_pre_ping=SQLAlchemy.POOL_PRE_PING)
+# postgres_models.Base.metadata.drop_all(Engine)
 postgres_models.Base.metadata.create_all(Engine)
 PostgresSession = sessionmaker(bind=Engine, autoflush=SQLAlchemy.AUTO_FLUSH, autocommit=SQLAlchemy.AUTO_COMMIT)
 

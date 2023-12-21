@@ -137,7 +137,7 @@ services:
     restart: unless-stopped
     ports:
       - '127.0.0.1:${PROTO_RMQ_PORT}:5672'
-      - '127.0.0.1:15672:15672'
+      - '15672:15672'
     volumes:
       - ./etc/rabbitmq/data/:/var/lib/rabbitmq/mnesia
       - ./etc/rabbitmq/log/:/var/log/rabbitmq

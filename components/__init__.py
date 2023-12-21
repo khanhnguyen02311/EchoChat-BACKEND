@@ -11,6 +11,10 @@ import grpc
 
 tags_metadata = [
     {
+        "name": "system",
+        "description": "Operations with application system",
+    },
+    {
         "name": "authentication",
         "description": "Operations with authentication methods & user validation",
     },
