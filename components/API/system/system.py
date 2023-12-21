@@ -5,12 +5,25 @@ from components.data.schemas.scylla_schemas import GroupPOST
 from components.functions.message import handle_add_new_message
 from components.functions.security import handle_create_hash
 from components.functions.group import handle_add_new_group, handle_add_new_participant
-from components.data import PostgresSession, ScyllaSession
+from components.data import PostgresSession, ScyllaSession, Engine
 from components.data.models import postgres_models as p_models, scylla_models as s_models
 from components.data.schemas import scylla_schemas as s_schemas
-from configurations.conf import Env
+from configurations.conf import Env, Scylla
 
 router = APIRouter()
+
+
+def reset():
+    p_models.Base.metadata.drop_all(Engine)
+    p_models.Base.metadata.create_all(Engine)
+
+    ScyllaSession.execute(f"DROP KEYSPACE IF EXISTS {Scylla.DB_KEYSPACE}")
+    ScyllaSession.execute(
+        f"CREATE KEYSPACE IF NOT EXISTS {Scylla.DB_KEYSPACE} WITH replication = " +
+        f"{{'class': 'NetworkTopologyStrategy', 'replication_factor': {Scylla.DB_REPLICATION_FACTOR}}}")
+    ScyllaSession.execute(f"USE {Scylla.DB_KEYSPACE}")
+    s_models.sync_tables()
+    print("Done")
 
 
 def generate():
@@ -85,3 +98,9 @@ def generate_testdata(background_task: BackgroundTasks):
             raise HTTPException(status_code=400, detail="Test data already existed")
     background_task.add_task(generate)
     return "Generating test data on the background"
+
+
+@router.get("/reset-databases")
+def reset_databases(background_task: BackgroundTasks):
+    background_task.add_task(reset)
+    return "Resetting databases on the background"
