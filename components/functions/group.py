@@ -1,7 +1,6 @@
 import uuid
 from datetime import datetime
 from typing import Any
-
 from cassandra.query import SimpleStatement
 from sqlalchemy import select
 from components.data import ScyllaSession, PostgresSession
@@ -22,25 +21,17 @@ def handle_check_existed_group(group_id: uuid.UUID,
     return True, existed_group
 
 
-def handle_check_joined_participant(group_id: uuid.UUID, accountinfo_id: int, with_accountinfo=False) -> \
-        tuple[bool, s_models.ParticipantByAccount | None, p_models.Accountinfo | None]:
+def handle_check_joined_participant(group_id: uuid.UUID, accountinfo_id: int) -> \
+        tuple[bool, s_models.ParticipantByAccount | None]:
     """Check if user already joined group\n
     Return: (result, participant_item)"""
 
     participant = s_models.ParticipantByAccount.objects. \
         filter(group_id=group_id).filter(accountinfo_id=accountinfo_id).first()
     if participant is None:
-        return False, None, None
-    if not with_accountinfo:
-        return True, participant, None
-
-    with PostgresSession.begin() as session:
-        user_query = select(p_models.Accountinfo).where(p_models.Accountinfo.id == accountinfo_id)
-        accountinfo = session.scalar(user_query)
-        if accountinfo is None:
-            return False, None, None
-        session.expunge(accountinfo)
-        return True, participant, accountinfo
+        return False, None
+    
+    return True, participant
 
 
 def handle_add_new_participant(group_id: uuid.UUID,
@@ -75,6 +66,7 @@ def handle_remove_participant(group_id: uuid.UUID, accountinfo_id: int, with_acc
         return "User not existed in group", None
     if existed_participant_by_account.role == s_models.CONSTANT.Participant_role[2]:
         return "Cannot remove creator from group", None
+
     accountinfo = None
     if with_accountinfo:
         with PostgresSession.begin() as session:
