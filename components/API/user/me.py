@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
-
+from components.data.DAOs import redis as d_redis
 from components.functions.security import handle_get_current_account, handle_get_current_accountinfo
 from components.functions.account import handle_edit_accountinfo
 from components.data import PostgresSession
@@ -13,12 +13,19 @@ router = APIRouter(prefix="/me")
 
 @router.get("/info/get")
 async def get_user_info(account_token: Annotated[p_models.Account, Depends(handle_get_current_account)]):
-    print(account_token.accountinfo_id)
+    error, accountinfo_cached = d_redis.get_user_info(account_token.accountinfo_id, "Accountinfo")
+    if error is not None:
+        print(error)
+    if accountinfo_cached is not None:
+        return {**p_schemas.AccountGET.model_validate(account_token).model_dump(),
+                **p_schemas.AccountinfoGET.model_validate(accountinfo_cached).model_dump()}
+
     with PostgresSession() as session:
         accountinfo_query = select(p_models.Accountinfo).where(p_models.Accountinfo.id == account_token.accountinfo_id)
         accountinfo = session.scalar(accountinfo_query)
         if accountinfo is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Account info not found")
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Accountinfo not found")
+        d_redis.set_user_info(accountinfo, "Accountinfo")
 
     return {**p_schemas.AccountGET.model_validate(account_token).model_dump(),
             **p_schemas.AccountinfoGET.model_validate(accountinfo).model_dump()}
@@ -32,7 +39,7 @@ async def set_user_info(accountinfo_new: p_schemas.AccountinfoPUT,
         if error is not None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=error)
         session.commit()
-        return "Done"
+    return "Done"
 
 
 @router.get("/avatar/get")

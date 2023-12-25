@@ -1,6 +1,7 @@
 from typing import Any
 from sqlalchemy import select, and_, or_, update
 from sqlalchemy.orm import Session
+from components.data.DAOs import redis as d_redis
 from components.data.models.postgres_models import Account, Accountinfo
 from components.data.schemas.postgres_schemas import AccountPOST, AccountinfoPUT
 from components.functions import security
@@ -64,10 +65,12 @@ def handle_edit_accountinfo(session: Session, accountinfo_token: Accountinfo,
             if existed_user is not None:
                 return "User with similar name & identify number existed. You should change identify number or your name."
 
-        accountinfo_update = update(Accountinfo).where(Accountinfo.id == accountinfo_token.id).values(
-            **accountinfo_new.model_dump()
-        )
-        session.execute(accountinfo_update)
+        accountinfo = session.scalar(select(Accountinfo).where(Accountinfo.id == accountinfo_token.id))
+        accountinfo.name = accountinfo_new.name
+        accountinfo.identifier = accountinfo_new.identifier
+        accountinfo.description = accountinfo_new.description
+        session.flush()
+        d_redis.set_user_info(accountinfo, "Accountinfo")
         return None
     except Exception as e:
         return str(e)

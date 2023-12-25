@@ -12,7 +12,7 @@ grpc_server = serve_grpc(debug=args.debug, stage=args.stage)
 
 @api_server.on_event('startup')
 async def startup():
-    await asyncio.sleep(5)
+    await asyncio.sleep(2)
     services_rabbitmq.RabbitMQService.run()
     print("INFO:\tRabbitMQ Connection established")
 
