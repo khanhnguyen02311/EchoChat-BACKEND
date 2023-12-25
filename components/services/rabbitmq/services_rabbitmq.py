@@ -57,42 +57,42 @@ class BEServicerRMQ(object):
         self._message_amount = 0
         self._stopping = False
 
-    def connect(self):
+    def _connect(self):
         # print("connection to rabbitmq")
         return AsyncioConnection(self._parameters,
-                                 on_open_callback=self.on_connection_open,
-                                 on_close_callback=self.on_connection_closed)
+                                 on_open_callback=self._on_connection_open,
+                                 on_close_callback=self._on_connection_closed)
 
-    def on_connection_open(self, connection):
+    def _on_connection_open(self, connection):
         # print("connection opened")
         self._connection = connection
-        self._connection.channel(on_open_callback=self.on_channel_open)
+        self._connection.channel(on_open_callback=self._on_channel_open)
 
-    def on_connection_closed(self, _unused_connection, reason):
+    def _on_connection_closed(self, _unused_connection, reason):
         # print("connection closed")
         self._channel = None
 
-    def on_channel_open(self, channel):
+    def _on_channel_open(self, channel):
         # print("channel opened")
         self._channel = channel
-        self._channel.add_on_close_callback(self.on_channel_closed)
-        self.setup_exchange(Proto.RMQ_EXCHANGE)
+        self._channel.add_on_close_callback(self._on_channel_closed)
+        self._setup_exchange(Proto.RMQ_EXCHANGE)
 
-    def on_channel_closed(self, channel, reason):
+    def _on_channel_closed(self, channel, reason):
         # print("channel closed")
         self._channel = None
         if not self._stopping:
             self._connection.close()
 
-    def setup_exchange(self, exchange_name):
+    def _setup_exchange(self, exchange_name):
         # print("setup exchange " + exchange_name)
-        self._channel.exchange_declare(exchange=exchange_name, exchange_type="direct", durable=True, callback=self.on_exchange_declare_ok)
+        self._channel.exchange_declare(exchange=exchange_name, exchange_type="direct", durable=True, callback=self._on_exchange_declare_ok)
 
-    def on_exchange_declare_ok(self, _unused_frame):
+    def _on_exchange_declare_ok(self, _unused_frame):
         # print("exchange declared")
         # pass through a pair of queue and corresponding routing key
-        cb_with_value_noti = functools.partial(self.on_queue_declare_ok, queue_route=[Proto.RMQ_QUEUE_NOTI, Proto.RMQ_ROUTING_KEY_NOTI])
-        cb_with_value_msg = functools.partial(self.on_queue_declare_ok, queue_route=[Proto.RMQ_QUEUE_MSG, Proto.RMQ_ROUTING_KEY_MSG])
+        cb_with_value_noti = functools.partial(self._on_queue_declare_ok, queue_route=[Proto.RMQ_QUEUE_NOTI, Proto.RMQ_ROUTING_KEY_NOTI])
+        cb_with_value_msg = functools.partial(self._on_queue_declare_ok, queue_route=[Proto.RMQ_QUEUE_MSG, Proto.RMQ_ROUTING_KEY_MSG])
         self._channel.queue_declare(queue=Proto.RMQ_QUEUE_NOTI,
                                     durable=True, exclusive=False, auto_delete=False,
                                     callback=cb_with_value_noti)
@@ -100,21 +100,25 @@ class BEServicerRMQ(object):
                                     durable=True, exclusive=False, auto_delete=False,
                                     callback=cb_with_value_msg)
 
-    def on_queue_declare_ok(self, _unused_frame, queue_route):
+    def _on_queue_declare_ok(self, _unused_frame, queue_route):
         # print("queue declared: " + queue_route[0] + " with routing key " + queue_route[1] + " bound to exchange " + Proto.RMQ_EXCHANGE)
         self._channel.queue_bind(queue_route[0], Proto.RMQ_EXCHANGE, routing_key=queue_route[1])
+
+    def run(self):
+        print("RabbitMQ producer is starting...")
+        self._connection = self._connect()
+
+    def stop(self):
+        print("RabbitMQ producer is stopping...")
+        self._stopping = True
+        if self._connection is not None:
+            self._connection.close()
 
     def send_data(self, routing, data):
         if self._channel is None or not self._channel.is_open:
             return
         self._channel.basic_publish(exchange=Proto.RMQ_EXCHANGE, routing_key=routing, body=data, properties=self._properties)
         self._message_amount += 1
-
-    def close_connection(self):
-        # print("connection closed")
-        self._stopping = True
-        if self._connection is not None:
-            self._connection.close()
 
 
 RabbitMQService = BEServicerRMQ()

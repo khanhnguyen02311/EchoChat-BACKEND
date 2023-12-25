@@ -5,7 +5,7 @@ from components.data.schemas.scylla_schemas import GroupPOST
 from components.functions.message import handle_add_new_message
 from components.functions.security import handle_create_hash
 from components.functions.group import handle_add_new_group, handle_add_new_participant
-from components.data import PostgresSession, ScyllaSession, Engine
+from components.data import PostgresSession, ScyllaSession, RedisSession, Engine
 from components.data.models import postgres_models as p_models, scylla_models as s_models
 from components.data.schemas import scylla_schemas as s_schemas
 from configurations.conf import Env, Scylla
@@ -17,12 +17,15 @@ def reset():
     p_models.Base.metadata.drop_all(Engine)
     p_models.Base.metadata.create_all(Engine)
 
+    RedisSession.flushdb()
+
     ScyllaSession.execute(f"DROP KEYSPACE IF EXISTS {Scylla.DB_KEYSPACE}")
     ScyllaSession.execute(
         f"CREATE KEYSPACE IF NOT EXISTS {Scylla.DB_KEYSPACE} WITH replication = " +
         f"{{'class': 'NetworkTopologyStrategy', 'replication_factor': {Scylla.DB_REPLICATION_FACTOR}}}")
     ScyllaSession.execute(f"USE {Scylla.DB_KEYSPACE}")
     s_models.sync_tables()
+    
     print("Done")
 
 
@@ -46,7 +49,7 @@ def generate():
             if (i - 1) % 20 == 0:
                 err, group = handle_add_new_group(GroupPOST(
                     name=f"System Group No.{(i - 1) // 20}",
-                    description=f"Auto-generated group No.{(i - 1) // 20} for system users, using for testing purposes. Group owner: {new_account.id}",
+                    description=f"Auto-generated group No.{(i - 1) // 20} for system users, using for testing purposes. Group owner: {new_accountinfo.name}",
                     visibility=True), new_accountinfo)
                 if err is not None:
                     print("ERROR: ", err)

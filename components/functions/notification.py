@@ -1,9 +1,7 @@
 import uuid
 from datetime import datetime
 from typing import Any
-from cassandra.query import SimpleStatement, PreparedStatement
-from components.data import ScyllaSession
-from components.data.models import scylla_models as s_models, postgres_models as p_models
+from components.data.models import scylla_models as s_models
 from components.data.schemas import scylla_schemas as s_schemas
 from components.services.rabbitmq.services_rabbitmq import RabbitMQService
 from configurations.conf import Proto

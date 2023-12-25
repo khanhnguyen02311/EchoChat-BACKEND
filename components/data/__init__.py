@@ -16,14 +16,14 @@ postgres_models.Base.metadata.create_all(Engine)
 PostgresSession = sessionmaker(bind=Engine, autoflush=SQLAlchemy.AUTO_FLUSH, autocommit=SQLAlchemy.AUTO_COMMIT)
 
 # For Redis
-RedisSession = redis.Redis(host='localhost', port=Redis.DB_PORT, db=0, password=Redis.DB_PWD)
+RedisSession = redis.Redis(host=Redis.DB_HOST, port=Redis.DB_PORT, db=0, password=Redis.DB_PWD)
 
 # For ScyllaDB
 profile = ExecutionProfile(
     load_balancing_policy=WhiteListRoundRobinPolicy([Scylla.DB_HOST]),
     consistency_level=ConsistencyLevel.LOCAL_ONE,
     serial_consistency_level=ConsistencyLevel.LOCAL_SERIAL,
-    request_timeout=15,
+    request_timeout=10,
     row_factory=tuple_factory
 )
 
