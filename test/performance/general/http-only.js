@@ -2,10 +2,17 @@ import http from "k6/http";
 import ws from "k6/ws";
 import {check, sleep} from "k6";
 
-const BASE_URL = "http://localhost";
-const BASE_WS_URL = "ws://localhost";
-const HTTP_PORT = 8000;
-const WS_PORT = 1323;
+if (__ENV.STAGE === "staging") {
+    const BASE_URL = "https://abcdavid-knguyen.ddns.net";
+    const BASE_WS_URL = "wss://abcdavid-knguyen.ddns.net";
+    const HTTP_PORT = 30011;
+    const WS_PORT = 30012;
+} else {
+    const BASE_URL = "http://localhost";
+    const BASE_WS_URL = "ws://localhost";
+    const HTTP_PORT = 8000;
+    const WS_PORT = 1323;
+}
 
 // function generateRandomString(length) {
 //     const characters = "abcdefghijklmnopqrstuvwxyz";
@@ -26,9 +33,9 @@ function getRandomSystemUser() {
 
 export const options = {
     stages: [
-        {duration: "2m", target: 200}, // Ramp up to 100 users over 30 seconds
-        {duration: "5m", target: 200}, // Stay at 100 users for 10 minutes
-        {duration: "2m", target: 0}  // Ramp down to 0 users over 30 seconds
+        {duration: "1m", target: 100}, // Ramp up to 100 users over 30 seconds
+        {duration: "5m", target: 100}, // Stay at 100 users for 10 minutes
+        {duration: "1m", target: 0}  // Ramp down to 0 users over 30 seconds
     ],
 };
 
@@ -61,7 +68,7 @@ export default function () {
 
     sleep(5);
 
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 30; i++) {
         const userInfoResponse = http.get(`${BASE_URL}:${HTTP_PORT}/user/me/info/get`, {headers: {Authorization: `Bearer ${accessToken}`}});
         check(userInfoResponse, {"Get user info status is 200": (r) => r.status === 200});
         sleep(5);

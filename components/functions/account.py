@@ -46,6 +46,7 @@ def handle_authenticate_account(session: Session, username_or_email: str, passwo
             return "Account not found", None
         if not security.handle_verify_password(password, acc.password):
             return "Incorrect username or password", None
+        d_redis.set_user_info(acc, "Account")
         return None, acc
 
     except Exception as e:

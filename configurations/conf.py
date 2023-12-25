@@ -24,7 +24,7 @@ class Postgres:
 
 
 class SQLAlchemy:
-    ECHO = True
+    ECHO = True if args.debug else False
     AUTO_FLUSH = True  # flush after committing
     AUTO_COMMIT = False
     POOL_SIZE = 15
