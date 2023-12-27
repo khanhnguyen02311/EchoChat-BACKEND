@@ -76,6 +76,20 @@ def generate():
     print("Done")
 
 
+def custom_execution():
+    # change all system user passwords into new passwords with lower hash rounds
+    with PostgresSession() as session:
+        existed_system_user = session.scalar(select(p_models.Account).where(p_models.Account.username == f"system_user_1"))
+        if existed_system_user is None:
+            raise HTTPException(status_code=400, detail="Test data not existed")
+        for i in range(1, 6001):
+            account = session.scalar(select(p_models.Account).where(p_models.Account.username == f"system_user_{i}"))
+            account.password = handle_create_hash("system_user_password")
+            session.flush()
+        session.commit()
+    print("Done")
+
+
 @router.get("/info")
 def application_info():
     scylla_mains = ScyllaSession.execute(
@@ -107,3 +121,8 @@ def generate_testdata(background_task: BackgroundTasks):
 def reset_databases(background_task: BackgroundTasks):
     background_task.add_task(reset)
     return "Resetting databases on the background"
+
+@router.get("/custom-request")
+def custom_request(background_task: BackgroundTasks):
+    background_task.add_task(custom_execution)
+    return "Custom request on the background"

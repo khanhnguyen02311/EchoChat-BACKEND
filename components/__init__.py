@@ -59,7 +59,6 @@ def serve_api(debug: bool, stage: str):
 
 
 def serve_grpc(debug: bool, stage: str):
-    max_workers = 1 if stage == "dev" else 3
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=1 if stage == "dev" else 2))
     EchoChat_pb2_grpc.add_EchoChatBEServicer_to_server(services_grpc.BEServicerGRPC(), server)
     return server

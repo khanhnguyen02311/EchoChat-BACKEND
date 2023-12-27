@@ -6,6 +6,7 @@ from sqlalchemy import select
 from components.data import ScyllaSession, PostgresSession
 from components.data.models import scylla_models as s_models, postgres_models as p_models
 from components.data.schemas import scylla_schemas as s_schemas, postgres_schemas as p_schemas
+from components.data.DAOs import redis as d_redis
 
 
 def handle_check_existed_group(group_id: uuid.UUID,
@@ -137,8 +138,16 @@ def handle_get_all_participants(group_id: uuid.UUID, with_accountinfo: bool = Tr
     result_list = []
     with PostgresSession.begin() as session:
         for row in participant_list:
+            error, cached_user = d_redis.get_user_info(row.accountinfo_id, "Accountinfo")
+            if error is not None:
+                print(error)
+            if cached_user is not None:
+                result_list.append({**s_schemas.ParticipantPOST.model_validate(row).model_dump(),
+                                    **p_schemas.AccountinfoGET.model_validate(cached_user).model_dump()})
+                continue
             user_query = select(p_models.Accountinfo).where(p_models.Accountinfo.id == row.accountinfo_id)
             accountinfo = session.scalar(user_query)
+            d_redis.set_user_info(accountinfo, "Accountinfo")
             result_list.append(
                 {**s_schemas.ParticipantPOST.model_validate(row).model_dump(),
                  **p_schemas.AccountinfoGET.model_validate(accountinfo).model_dump()})

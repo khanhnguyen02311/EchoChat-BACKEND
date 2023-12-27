@@ -19,7 +19,7 @@ class AccountGET(BaseORMModel):
 class AccountGETALL(BaseORMModel):
     id: int
     username: str
-    password: str
+    # password: str
     email: str
     accountinfo_id: int
 
