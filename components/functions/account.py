@@ -75,3 +75,19 @@ def handle_edit_accountinfo(session: Session, accountinfo_token: Accountinfo,
         return None
     except Exception as e:
         return str(e)
+
+
+def handle_edit_password(session: Session, account_token: Account, password_old: str, password_new: str, validate_old_password: bool = True) -> Any:
+    """Check and update existing Account password. Return error if needed. \n
+    Return: (error)"""
+
+    try:
+        account = session.scalar(select(Account).where(Account.accountinfo_id == account_token.id))
+        if validate_old_password:
+            if not security.handle_verify_password(password_old, account.password):
+                raise Exception("Incorrect old password")
+        account.password = security.handle_create_hash(password_new)
+        session.flush()
+        return None
+    except Exception as e:
+        return str(e)

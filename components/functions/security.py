@@ -12,7 +12,7 @@ from components.data import PostgresSession, RedisSession
 from components.data.DAOs import redis as d_redis
 from components.data.models.postgres_models import Account, Accountinfo
 
-pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto", sha256_crypt__default_rounds=400000)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin", scheme_name="JWT")
 
 

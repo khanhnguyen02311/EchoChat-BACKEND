@@ -2,16 +2,15 @@ import http from "k6/http";
 import ws from "k6/ws";
 import {check, sleep} from "k6";
 
+let BASE_URL = "http://localhost";
+let BASE_WS_URL = "ws://localhost";
+let HTTP_PORT = 8000;
+let WS_PORT = 1323;
+
 if (__ENV.STAGE === "staging") {
-    const BASE_URL = "https://abcdavid-knguyen.ddns.net";
-    const BASE_WS_URL = "wss://abcdavid-knguyen.ddns.net";
-    const HTTP_PORT = 30011;
-    const WS_PORT = 30012;
-} else {
-    const BASE_URL = "http://localhost";
-    const BASE_WS_URL = "ws://localhost";
-    const HTTP_PORT = 8000;
-    const WS_PORT = 1323;
+    BASE_URL = "https://abcdavid-knguyen.ddns.net";
+    HTTP_PORT = 30011;
+    WS_PORT = 30012;
 }
 
 // function generateRandomString(length) {
@@ -33,25 +32,13 @@ function getRandomSystemUser() {
 
 export const options = {
     stages: [
-        {duration: "1m", target: 100}, // Ramp up to 100 users over 30 seconds
-        {duration: "5m", target: 100}, // Stay at 100 users for 10 minutes
+        {duration: "5m", target: 600}, // Ramp up to 100 users over 30 seconds
+        {duration: "10m", target: 600}, // Stay at 100 users for 10 minutes
         {duration: "1m", target: 0}  // Ramp down to 0 users over 30 seconds
     ],
 };
 
 export default function () {
-    // Step 1: Signup
-    // const random_name = generateRandomString(10);
-    // const email = `${random_name}@email.com`;
-    // const signupPayload = {
-    //   username: random_name,
-    //   email: email,
-    //   password: random_name,
-    // };
-    // const signupResponse = http.post(`${BASE_URL}:${HTTP_PORT}/auth/signup`, signupPayload);
-    // check(signupResponse, { "Signup status is 200": (r) => r.status === 200 });
-
-    // Step 2: Signin
     const username = getRandomSystemUser();
     // const username = `system_user_${current_user}`;
     // current_user += 1;
@@ -68,7 +55,7 @@ export default function () {
 
     sleep(5);
 
-    for (let i = 0; i < 30; i++) {
+    while (true) {
         const userInfoResponse = http.get(`${BASE_URL}:${HTTP_PORT}/user/me/info/get`, {headers: {Authorization: `Bearer ${accessToken}`}});
         check(userInfoResponse, {"Get user info status is 200": (r) => r.status === 200});
         sleep(5);
