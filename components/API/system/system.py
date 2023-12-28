@@ -122,6 +122,7 @@ def reset_databases(background_task: BackgroundTasks):
     background_task.add_task(reset)
     return "Resetting databases on the background"
 
+
 @router.get("/custom-request")
 def custom_request(background_task: BackgroundTasks):
     background_task.add_task(custom_execution)
