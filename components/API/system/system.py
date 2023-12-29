@@ -30,11 +30,15 @@ def reset():
 
 
 def generate():
+    # // TODO: generate test data
     hashed_password = handle_create_hash("system_user_password")
     group = None
+    start = 1
     with PostgresSession() as session:
         # 6000 system users
         for i in range(1, 6001):
+            if (i - 1) % 20 == 0:
+                start = i
             new_accountinfo = p_models.Accountinfo(name=f"System User No.{i}")
             session.add(new_accountinfo)
             session.flush()
@@ -45,49 +49,61 @@ def generate():
             session.add(new_account)
             session.flush()
 
-            # 300 groups, each group has 20 participants
-            if (i - 1) % 20 == 0:
-                err, group = handle_add_new_group(GroupPOST(
-                    name=f"System Group No.{(i - 1) // 20}",
-                    description=f"Auto-generated group No.{(i - 1) // 20} for system users, using for testing purposes. Group owner: {new_accountinfo.name}",
-                    visibility=True), new_accountinfo)
-                if err is not None:
-                    print("ERROR: ", err)
-                    return
-                print(f"{group.name} set up completely. Group owner: {new_account.id}")
-                message_content = f"User {new_accountinfo.name} has created group."
-
-            else:
-                err, _ = handle_add_new_participant(group.id, new_accountinfo.id, accountinfo_name=new_accountinfo.name)
-                if err is not None:
-                    print("ERROR: ", err)
-                    return
-                message_content = f"User {new_accountinfo.name} joined group {group.name}."
-
-            err, _ = handle_add_new_message(s_schemas.MessagePOST(group_id=group.id,
-                                                                  accountinfo_id=new_accountinfo.id,
-                                                                  group_name=group.name,
-                                                                  accountinfo_name=new_accountinfo.name,
-                                                                  type=s_models.CONSTANT.Message_type[2],
-                                                                  content=message_content))
+            # each user is creator of 1 group, and participant of 19 more groups
+            err, group = handle_add_new_group(GroupPOST(
+                name=f"System Group No.{i}",
+                description=f"Auto-generated group No.{i} for system users, using for testing purposes. Group owner: {new_accountinfo.name}",
+                visibility=True), new_accountinfo)
             if err is not None:
                 print("ERROR: ", err)
+                return
+            print(f"{group.name} set up completely. Group owner: {new_account.id}")
+            message_content = f"User {new_accountinfo.name} has created group."
+            
+            err, _ = handle_add_new_message(s_schemas.MessagePOST(group_id=group.id,
+                                                                    accountinfo_id=new_accountinfo.id,
+                                                                    group_name=group.name,
+                                                                    accountinfo_name=new_accountinfo.name,
+                                                                    type=s_models.CONSTANT.Message_type[2],
+                                                                    content=message_content))
+            if err is not None:
+                print("ERROR: ", err)
+            
+            for j in range(start, start+20):
+                if j == i:
+                    continue
+                err, _ = handle_add_new_participant(group.id, j, accountinfo_name=f"System User No.{j}")
+                if err is not None:
+                    print("ERROR: ", err)
+                    return
+                message_content = f"User System User No.{j} joined group {group.name}."
+
+                err, _ = handle_add_new_message(s_schemas.MessagePOST(group_id=group.id,
+                                                                    accountinfo_id=j,
+                                                                    group_name=group.name,
+                                                                    accountinfo_name=f"System User No.{j}",
+                                                                    type=s_models.CONSTANT.Message_type[2],
+                                                                    content=message_content))
+                if err is not None:
+                    print("ERROR: ", err)
+                    
         session.commit()
     print("Done")
 
 
 def custom_execution():
     # change all system user passwords into new passwords with lower hash rounds
-    with PostgresSession() as session:
-        existed_system_user = session.scalar(select(p_models.Account).where(p_models.Account.username == f"system_user_1"))
-        if existed_system_user is None:
-            raise HTTPException(status_code=400, detail="Test data not existed")
-        for i in range(1, 6001):
-            account = session.scalar(select(p_models.Account).where(p_models.Account.username == f"system_user_{i}"))
-            account.password = handle_create_hash("system_user_password")
-            session.flush()
-        session.commit()
-    print("Done")
+    # with PostgresSession() as session:
+    #     existed_system_user = session.scalar(select(p_models.Account).where(p_models.Account.username == f"system_user_1"))
+    #     if existed_system_user is None:
+    #         raise HTTPException(status_code=400, detail="Test data not existed")
+    #     for i in range(1, 6001):
+    #         account = session.scalar(select(p_models.Account).where(p_models.Account.username == f"system_user_{i}"))
+    #         account.password = handle_create_hash("system_user_password")
+    #         session.flush()
+    #     session.commit()
+    # print("Done")
+    pass
 
 
 @router.get("/info")
