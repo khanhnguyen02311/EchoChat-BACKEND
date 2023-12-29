@@ -34,11 +34,11 @@ export const options = {
         ], // http errors should be less than 1%
         http_req_duration: [
             {
-                threshold: 'p(95)<1000',
+                threshold: 'p(95)<500',
                 abortOnFail: true,
-                delayAbortEval: '5s',
+                delayAbortEval: '0s',
             }
-        ], // 95% of requests should be below 1s
+        ], // 95% of requests should be below 0.5s
     },
 };
 
