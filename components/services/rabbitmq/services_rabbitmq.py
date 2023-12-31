@@ -51,7 +51,7 @@ class BEServicerRMQ(object):
     # https://stackoverflow.com/questions/70889479/how-to-use-pika-with-fastapis-asyncio-loop
     def __init__(self):
         self._credentials = pika.PlainCredentials(Proto.RMQ_USR, Proto.RMQ_PWD)
-        self._parameters = pika.ConnectionParameters(Proto.RMQ_HOST, Proto.RMQ_PORT, "/", self._credentials) #, heartbeat=600, blocked_connection_timeout=300)
+        self._parameters = pika.ConnectionParameters(Proto.RMQ_HOST, Proto.RMQ_PORT, "/", self._credentials, heartbeat=600)
         self._properties = pika.BasicProperties(content_type='application/json')
         self._connection = None
         self._channel = None
@@ -73,10 +73,9 @@ class BEServicerRMQ(object):
 
     def _on_connection_closed(self, _unused_connection, exception):
         print("RabbitMQ: Connection closed:", type(exception))
-        if not self._stopping:
-            self.run()
-        # print("connection closed")
         self._channel = None
+        if not self._stopping:
+            self._connection = self._connect()
 
     def _on_channel_open(self, channel):
         # print("channel opened")
@@ -87,8 +86,7 @@ class BEServicerRMQ(object):
     def _on_channel_closed(self, channel, reason):
         # print("channel closed")
         self._channel = None
-        if not self._stopping:
-            self._connection.close()
+        self.stop()
 
     def _setup_exchange(self, exchange_name):
         # print("setup exchange " + exchange_name)
