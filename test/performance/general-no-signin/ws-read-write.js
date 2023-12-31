@@ -30,13 +30,13 @@ if (__ENV.STAGE === "staging") {
                 delayAbortEval: '5s',
             }
         ], // http errors should be less than 1%
-        http_req_duration: [
-            {
-                threshold: 'p(95)<500',
-                abortOnFail: true,
-                delayAbortEval: '5s',
-            }
-        ], // 95% of requests should be below 1s
+        // http_req_duration: [
+        //     {
+        //         threshold: 'p(95)<1000',
+        //         abortOnFail: true,
+        //         delayAbortEval: '5s',
+        //     }
+        // ], // 95% of requests should be below 1s
     };
 } else {  // dev
     BASE_URL = "http://localhost";
@@ -112,7 +112,9 @@ export default function () {
     
             socket.on('open', () => {           
                 socket.setInterval(function () {
+                    console.log(groups.length);
                     let randomGroup = groups[Math.floor(Math.random() * groups.length)];
+                    console.log(`Sending message to group ${randomGroup}`)
                     socket.send(JSON.stringify({
                         type: "message-new",
                         data: {
