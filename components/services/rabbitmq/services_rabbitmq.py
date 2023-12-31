@@ -1,4 +1,6 @@
+import asyncio
 import pika
+from pika import exceptions
 from pika.adapters.asyncio_connection import AsyncioConnection
 import functools
 from configurations.conf import Proto
@@ -49,7 +51,7 @@ class BEServicerRMQ(object):
     # https://stackoverflow.com/questions/70889479/how-to-use-pika-with-fastapis-asyncio-loop
     def __init__(self):
         self._credentials = pika.PlainCredentials(Proto.RMQ_USR, Proto.RMQ_PWD)
-        self._parameters = pika.ConnectionParameters(Proto.RMQ_HOST, Proto.RMQ_PORT, "/", self._credentials)  # heartbeat=600, blocked_connection_timeout=300
+        self._parameters = pika.ConnectionParameters(Proto.RMQ_HOST, Proto.RMQ_PORT, "/", self._credentials) #, heartbeat=600, blocked_connection_timeout=300)
         self._properties = pika.BasicProperties(content_type='application/json')
         self._connection = None
         self._channel = None
@@ -58,6 +60,7 @@ class BEServicerRMQ(object):
         self._stopping = False
 
     def _connect(self):
+        self._stopping = False
         # print("connection to rabbitmq")
         return AsyncioConnection(self._parameters,
                                  on_open_callback=self._on_connection_open,
@@ -68,7 +71,10 @@ class BEServicerRMQ(object):
         self._connection = connection
         self._connection.channel(on_open_callback=self._on_channel_open)
 
-    def _on_connection_closed(self, _unused_connection, reason):
+    def _on_connection_closed(self, _unused_connection, exception):
+        print("RabbitMQ: Connection closed:", type(exception))
+        if not self._stopping:
+            self.run()
         # print("connection closed")
         self._channel = None
 
