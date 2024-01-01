@@ -1,4 +1,3 @@
-import random
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from sqlalchemy import select
 from components.data.schemas.scylla_schemas import GroupPOST
