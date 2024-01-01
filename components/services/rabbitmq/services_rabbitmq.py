@@ -55,8 +55,6 @@ class BEServicerRMQ(object):
         self._properties = pika.BasicProperties(content_type='application/json')
         self._connection = None
         self._channel = None
-
-        self._message_amount = 0
         self._stopping = False
 
     def _connect(self):
@@ -72,21 +70,24 @@ class BEServicerRMQ(object):
         self._connection.channel(on_open_callback=self._on_channel_open)
 
     def _on_connection_closed(self, _unused_connection, exception):
-        print("RabbitMQ: Connection closed:", type(exception))
+        print("RabbitMQ: Connection closed:", type(exception), exception)
         self._channel = None
         if not self._stopping:
             self._connection = self._connect()
 
     def _on_channel_open(self, channel):
-        # print("channel opened")
         self._channel = channel
         self._channel.add_on_close_callback(self._on_channel_closed)
         self._setup_exchange(Proto.RMQ_EXCHANGE)
 
     def _on_channel_closed(self, channel, reason):
-        # print("channel closed")
-        self._channel = None
-        self.stop()
+        print("RabbitMQ: Channel closed:", type(reason), reason)
+        # self._channel = None
+        # self.stop()
+        if not self._stopping:
+            self._connection = self._connect()
+        else:
+            self.stop()
 
     def _setup_exchange(self, exchange_name):
         # print("setup exchange " + exchange_name)
@@ -115,14 +116,17 @@ class BEServicerRMQ(object):
     def stop(self):
         print("RabbitMQ producer is stopping...")
         self._stopping = True
-        if self._connection is not None:
+        if self._connection is not None and not self._connection.is_closing:
             self._connection.close()
 
     def send_data(self, routing, data):
+        if self._connection is None or not self._connection.is_open:
+            print("RabbitMQ: Send data failed. Connection is not open.")
+            return
         if self._channel is None or not self._channel.is_open:
+            print("RabbitMQ: Send data failed. Channel is not open.")
             return
         self._channel.basic_publish(exchange=Proto.RMQ_EXCHANGE, routing_key=routing, body=data, properties=self._properties)
-        self._message_amount += 1
 
 
 RabbitMQService = BEServicerRMQ()

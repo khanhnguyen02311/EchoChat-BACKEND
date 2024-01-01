@@ -118,7 +118,23 @@ services:
       - network-1
 
 
-  obsv-prometheus:
+  proto-rabbitmq:
+    image: rabbitmq:3-management
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${PROTO_RMQ_PORT}:5672'
+      - '15672:15672'
+      - '15692:15692'
+    volumes:
+      - ./etc/rabbitmq/data/:/var/lib/rabbitmq/mnesia
+      - ./etc/rabbitmq/log/:/var/log/rabbitmq
+      - ./etc/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./etc/rabbitmq/definitions-rabbitmq.json:/etc/rabbitmq/definitions-rabbitmq.json
+    networks:
+      - network-1
+
+
+  obsv-prometheus-app:
     image: prom/prometheus
     restart: unless-stopped
     depends_on:
@@ -132,20 +148,18 @@ services:
       - network-1
 
 
-  proto-rabbitmq:
-    image: rabbitmq:3-management
+  obsv-prometheus-rabbitmq:
+    image: prom/prometheus
     restart: unless-stopped
+    depends_on:
+      - proto-rabbitmq
     ports:
-      - '127.0.0.1:${PROTO_RMQ_PORT}:5672'
-      - '15672:15672'
+      - '127.0.0.1:15693:9090'
     volumes:
-      - ./etc/rabbitmq/data/:/var/lib/rabbitmq/mnesia
-      - ./etc/rabbitmq/log/:/var/log/rabbitmq
-      - ./etc/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
-      - ./etc/rabbitmq/definitions-rabbitmq.json:/etc/rabbitmq/definitions-rabbitmq.json
+      - ./etc/prometheus/prometheus-rabbitmq.yml:/etc/prometheus/prometheus.yml
+    command: --config.file=/etc/prometheus/prometheus.yml
     networks:
       - network-1
-
 
 networks:
   network-1:
