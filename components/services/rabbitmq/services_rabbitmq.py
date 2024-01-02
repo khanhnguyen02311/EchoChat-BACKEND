@@ -64,7 +64,7 @@ class BEServicerRMQ(object):
         # print("connection to rabbitmq")
         return AsyncioConnection(self._parameters,
                                  on_open_callback=self._on_connection_open,
-                                 on_close_callback=self._on_connection_closed).channel().basic_publish()
+                                 on_close_callback=self._on_connection_closed).channel()
 
     def _on_connection_open(self, connection):
         print("RabbitMQ: Connection opened")
