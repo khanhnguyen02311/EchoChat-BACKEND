@@ -1,7 +1,6 @@
 from time import sleep
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
-from sqlalchemy import select
+from fastapi import APIRouter, BackgroundTasks
 from components.data.schemas.scylla_schemas import GroupPOST
 from components.functions.message import handle_add_new_message
 from components.functions.security import handle_create_hash
@@ -30,12 +29,12 @@ def reset():
     print("Done")
 
 
-def generate(start_from: int):
+def generate(start_from: int, amount: int):
     hashed_password = handle_create_hash("system_user_password")
     start = 1
     with PostgresSession() as session:
         # 6000 system users
-        for i in range(start_from, start_from + 500):
+        for i in range(start_from, start_from + amount):
             if (i - 1) % 20 == 0:
                 start = i
             new_accountinfo = p_models.Accountinfo(name=f"System User No.{i}")
@@ -85,7 +84,8 @@ def generate(start_from: int):
                                                                       content=message_content))
                 if err is not None:
                     print("ERROR: ", err)
-            sleep(0.1)
+
+                sleep(0.1)
 
         session.commit()
     print("Done")
@@ -113,12 +113,12 @@ def application_info():
 
 
 @router.get("/generate-testdata")
-def generate_testdata(background_task: BackgroundTasks, start_from: int):
+def generate_testdata(background_task: BackgroundTasks, start_from: int, amount: int):
     # with PostgresSession() as session:
     #     existed_system_user = session.scalar(select(p_models.Account).where(p_models.Account.username == "system_user_1"))
     #     if existed_system_user is not None:
     #         raise HTTPException(status_code=400, detail="Test data already existed")
-    background_task.add_task(generate, start_from)
+    background_task.add_task(generate, start_from, amount)
     return "Generating test data on the background"
 
 
