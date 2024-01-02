@@ -85,7 +85,7 @@ def generate(start_from: int, amount: int):
                 if err is not None:
                     print("ERROR: ", err)
 
-                sleep(0.1)
+                sleep(0.01)  # 10ms
 
         session.commit()
     print("Done")
