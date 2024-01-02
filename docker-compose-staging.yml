@@ -83,7 +83,7 @@ services:
     #      - "./etc/scylla-1/scylla.yaml:/etc/scylla/scylla.yaml"
     #      - "./etc/scylla-1/cassandra-rackdc.properties.dc1:/etc/scylla/cassandra-rackdc.properties"
     #      - "./etc/scylla-1/mutant-data.txt:/mutant-data.txt"
-    command: --smp 2 --memory 2.5G --reserve-memory 4G
+    command: --smp 2 --memory 2500M --reserve-memory 4G
     networks:
       - network-1
 
@@ -98,7 +98,7 @@ services:
     #    volumes:
     #      - "./etc/scylla-2/scylla.yaml:/etc/scylla/scylla.yaml"
     #      - "./etc/scylla-2/cassandra-rackdc.properties.dc1:/etc/scylla/cassandra-rackdc.properties"
-    command: --smp 2 --memory 2.5G --reserve-memory 4G --seeds=db-scylla-1
+    command: --smp 2 --memory 2500M --reserve-memory 4G --seeds=db-scylla-1
     networks:
       - network-1
 
@@ -113,7 +113,7 @@ services:
     #    volumes:
     #      - "./etc/scylla-3/scylla.yaml:/etc/scylla/scylla.yaml"
     #      - "./etc/scylla-3/cassandra-rackdc.properties.dc1:/etc/scylla/cassandra-rackdc.properties"
-    command: --smp 2 --memory 2.5G --reserve-memory 4G --seeds=db-scylla-1
+    command: --smp 2 --memory 2500M --reserve-memory 4G --seeds=db-scylla-1
     networks:
       - network-1
 
