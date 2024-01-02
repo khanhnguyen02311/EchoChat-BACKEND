@@ -64,10 +64,10 @@ class BEServicerRMQ(object):
         # print("connection to rabbitmq")
         return AsyncioConnection(self._parameters,
                                  on_open_callback=self._on_connection_open,
-                                 on_close_callback=self._on_connection_closed)
+                                 on_close_callback=self._on_connection_closed).channel().basic_publish()
 
     def _on_connection_open(self, connection):
-        # print("connection opened")
+        print("RabbitMQ: Connection opened")
         self._connection = connection
         self._connection.channel(on_open_callback=self._on_channel_open)
 
@@ -78,7 +78,9 @@ class BEServicerRMQ(object):
             self._connection = self._connect()
 
     def _on_channel_open(self, channel):
+        print("RabbitMQ: Channel opened")
         self._channel = channel
+        self._channel.confirm_delivery(self._on_delivery_confirmation)
         self._channel.add_on_close_callback(self._on_channel_closed)
         self._setup_exchange(Proto.RMQ_EXCHANGE)
 
@@ -90,6 +92,15 @@ class BEServicerRMQ(object):
             self._connection = self._connect()
         else:
             self.stop()
+
+    def _on_delivery_confirmation(self, method_frame):
+        confirmation_type = method_frame.method.NAME.split('.')[1].lower()
+        if confirmation_type == 'ack':
+            print("RabbitMQ: Message published")
+        elif confirmation_type == 'nack':
+            print("RabbitMQ: Message not published")
+        else:
+            print("RabbitMQ: Unknown confirmation type:", confirmation_type)
 
     def _setup_exchange(self, exchange_name):
         # print("setup exchange " + exchange_name)
@@ -128,7 +139,14 @@ class BEServicerRMQ(object):
         if self._channel is None or not self._channel.is_open:
             print("RabbitMQ: Send data failed. Channel is not open.")
             return
-        self._channel.basic_publish(exchange=Proto.RMQ_EXCHANGE, routing_key=routing, body=data, properties=self._properties)
+        try:
+            self._channel.basic_publish(exchange=Proto.RMQ_EXCHANGE, routing_key=routing, body=data, properties=self._properties)
+        except (exceptions.ChannelClosed, exceptions.ConnectionClosed, exceptions.AMQPError, exceptions.AMQPChannelError, exceptions.AMQPConnectionError) as e:
+            print("RabbitMQ: Send data failed. Reconnecting..., exception:", type(e), e)
+            self._connection = self._connect()
+        except Exception as e:
+            print("RabbitMQ: Send data failed. Reconnecting..., exception:", type(e), e)
+            self._connection = self._connect()
 
 
 RabbitMQService = BEServicerRMQ()
