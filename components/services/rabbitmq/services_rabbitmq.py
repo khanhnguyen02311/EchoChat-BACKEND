@@ -64,7 +64,7 @@ class BEServicerRMQ(object):
         # print("connection to rabbitmq")
         return AsyncioConnection(self._parameters,
                                  on_open_callback=self._on_connection_open,
-                                 on_close_callback=self._on_connection_closed).channel()
+                                 on_close_callback=self._on_connection_closed)
 
     def _on_connection_open(self, connection):
         print("RabbitMQ: Connection opened")
@@ -86,8 +86,6 @@ class BEServicerRMQ(object):
 
     def _on_channel_closed(self, channel, reason):
         print("RabbitMQ: Channel closed:", type(reason), reason)
-        # self._channel = None
-        # self.stop()
         if not self._stopping:
             self._connection = self._connect()
         else:
