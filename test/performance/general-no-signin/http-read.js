@@ -18,7 +18,7 @@ if (__ENV.STAGE === "staging") {
     WS_PORT = 30013;
     TOKEN_FILENAME = "staging-tokens.json";
     STAGES = [
-        {duration: "5m", target: 400}, // Ramp up to 500 users over 10 minutes
+        {duration: "10m", target: 400}, // Ramp up to 500 users over 10 minutes
         {duration: "30m", target: 400}, // Stay at 500 users for 20 minutes
         {duration: "2m", target: 0}  // Ramp down to 0 users over 2 minutes
     ];
@@ -44,10 +44,13 @@ if (__ENV.STAGE === "staging") {
     HTTP_PORT = 8000;
     WS_PORT = 1323;
     TOKEN_FILENAME = "dev-tokens.json";
+    // STAGES = [
+    //     {duration: "5m", target: 500}, // Ramp up to 500 users over 5 minutes
+    //     {duration: "30m", target: 500}, // Stay at 500 users for 15 minutes
+    //     {duration: "2m", target: 0}  // Ramp down to 0 users over 2 minutes
+    // ];
     STAGES = [
-        {duration: "5m", target: 500}, // Ramp up to 500 users over 5 minutes
-        {duration: "15m", target: 500}, // Stay at 500 users for 15 minutes
-        {duration: "2m", target: 0}  // Ramp down to 0 users over 2 minutes
+        {duration: "50m", target: 10000}, 
     ];
     THRESHOLDS = {
         http_req_failed: [
@@ -61,7 +64,7 @@ if (__ENV.STAGE === "staging") {
             {
                 threshold: 'p(95)<500',
                 abortOnFail: true,
-                delayAbortEval: '5s',
+                delayAbortEval: '15s',
             }
         ], // 95% of requests should be below 0.5s
     };
@@ -112,43 +115,87 @@ export default function () {
 }
 
 // --------------------------------------------
-// DEV:
-
+// DEV (breakpoint):
 // execution: local
 // script: http-read.js
 // output: -
 
-// scenarios: (100.00%) 1 scenario, 600 max VUs, 22m30s max duration (incl. graceful stop):
-//         * default: Up to 600 looping VUs for 22m0s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+// scenarios: (100.00%) 1 scenario, 10000 max VUs, 50m30s max duration (incl. graceful stop):
+//       * default: Up to 10000 looping VUs for 50m0s over 1 stages (gracefulRampDown: 30s, gracefulStop: 30s)
 
 
-//     ✓ Signin status is 200
-//     ✓ Get user info status is 200
-//     ✓ Get recent groups status is 200
-//     ✓ Get group info status is 200
-//     ✓ Get participants status is 200
-//     ✓ Get messages status is 200
+// ✗ Get user info status is 200
+//  ↳  99% — ✓ 3987 / ✗ 9
+// ✓ Get recent groups status is 200
+// ✗ Get group info status is 200
+//  ↳  99% — ✓ 3646 / ✗ 23
+// ✗ Get participants status is 200
+//  ↳  97% — ✓ 3437 / ✗ 79
+// ✗ Get messages status is 200
+//  ↳  99% — ✓ 3345 / ✗ 22
 
-//     checks.........................: 100.00% ✓ 26784     ✗ 0    
-//     data_received..................: 47 MB   70 kB/s
-//     data_sent......................: 13 MB   19 kB/s
-//     http_req_blocked...............: avg=152.09µs min=1.28µs  med=161.61µs max=34.23ms p(90)=330.49µs p(95)=375.9µs 
-//     http_req_connecting............: avg=40.72µs  min=0s      med=0s       max=34.13ms p(90)=186.81µs p(95)=229.45µs
-// ✗ http_req_duration..............: avg=99.88ms  min=1.5ms   med=30.69ms  max=1.63s   p(90)=274.54ms p(95)=507.07ms
-//     { expected_response:true }...: avg=99.88ms  min=1.5ms   med=30.69ms  max=1.63s   p(90)=274.54ms p(95)=507.07ms
-// ✓ http_req_failed................: 0.00%   ✓ 0         ✗ 26784
-//     http_req_receiving.............: avg=388.91µs min=12.98µs med=102.64µs max=69.83ms p(90)=1.04ms   p(95)=1.54ms  
-//     http_req_sending...............: avg=1.09ms   min=4.35µs  med=50.87µs  max=95.99ms p(90)=2.64ms   p(95)=4.79ms  
-//     http_req_tls_handshaking.......: avg=0s       min=0s      med=0s       max=0s      p(90)=0s       p(95)=0s      
-//     http_req_waiting...............: avg=98.4ms   min=1.39ms  med=29.13ms  max=1.63s   p(90)=274.27ms p(95)=504.53ms
-//     http_reqs......................: 26784   39.978982/s
-//     vus............................: 600     min=2       max=600
-//     vus_max........................: 600     min=600     max=600
+// checks.........................: 99.27% ✓ 18239     ✗ 133    
+// data_received..................: 40 MB  168 kB/s
+// data_sent......................: 6.6 MB 28 kB/s
+// http_req_blocked...............: avg=140.48µs min=1.48µs  med=138.09µs max=22.13ms  p(90)=330.03µs p(95)=361.75µs
+// http_req_connecting............: avg=93.13µs  min=0s      med=76.74µs  max=22.05ms  p(90)=226.99µs p(95)=250.24µs
+// ✗ http_req_duration..............: avg=128.58ms min=1.44ms  med=57.34ms  max=1.24s    p(90)=351.35ms p(95)=501.45ms
+//   { expected_response:true }...: avg=128.58ms min=1.44ms  med=57.34ms  max=1.24s    p(90)=351.35ms p(95)=501.45ms
+// ✓ http_req_failed................: 0.00%  ✓ 0         ✗ 18372  
+// http_req_receiving.............: avg=723.39µs min=15.57µs med=138.37µs max=101.93ms p(90)=1.81ms   p(95)=3.06ms  
+// http_req_sending...............: avg=168.01µs min=4.8µs   med=39.09µs  max=112.84ms p(90)=83.2µs   p(95)=98.98µs 
+// http_req_tls_handshaking.......: avg=0s       min=0s      med=0s       max=0s       p(90)=0s       p(95)=0s      
+// http_req_waiting...............: avg=127.69ms min=1.37ms  med=56.52ms  max=1.23s    p(90)=349.84ms p(95)=499.75ms
+// http_reqs......................: 18372  78.047142/s
+// iteration_duration.............: avg=25.45s   min=23.11s  med=25.44s   max=28.17s   p(90)=26.41s   p(95)=26.66s  
+// iterations.....................: 3221   13.683314/s
+// vus............................: 785    min=2       max=785  
+// vus_max........................: 10000  min=10000   max=10000
 
 
-// running (11m10.0s), 000/600 VUs, 0 complete and 600 interrupted iterations
-// default ✗ [==================>-------------------] 073/600 VUs  11m10.0s/22m00.0s
-// ERRO[0672] thresholds on metrics 'http_req_duration' were crossed; at least one has abortOnFail enabled, stopping test prematurely 
+// running (03m55.4s), 00000/10000 VUs, 3221 complete and 785 interrupted iterations
+// default ✗ [=>------------------------------------] 00041/10000 VUs  03m55.4s/50m00.0s
+
+
+// DEV (500):
+// execution: local
+// script: http-read.js
+// output: -
+
+// scenarios: (100.00%) 1 scenario, 500 max VUs, 37m30s max duration (incl. graceful stop):
+//       * default: Up to 500 looping VUs for 37m0s over 3 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+// ✗ Get user info status is 200
+//  ↳  98% — ✓ 38822 / ✗ 618
+// ✓ Get recent groups status is 200
+// ✗ Get group info status is 200
+//  ↳  98% — ✓ 38859 / ✗ 581
+// ✗ Get participants status is 200
+//  ↳  98% — ✓ 38784 / ✗ 656
+// ✗ Get messages status is 200
+//  ↳  98% — ✓ 38825 / ✗ 615
+
+// checks.........................: 98.74% ✓ 194730    ✗ 2470  
+// data_received..................: 482 MB 215 kB/s
+// data_sent......................: 70 MB  31 kB/s
+// http_req_blocked...............: avg=122.8µs  min=1.16µs  med=47.62µs max=22.97ms  p(90)=278.63µs p(95)=326.12µs
+// http_req_connecting............: avg=81.03µs  min=0s      med=0s      max=22.9ms   p(90)=192.23µs p(95)=229.05µs
+// ✓ http_req_duration..............: avg=129.15ms min=1.34ms  med=16.57ms max=9.87s    p(90)=89.13ms  p(95)=146.55ms
+//   { expected_response:true }...: avg=129.15ms min=1.34ms  med=16.57ms max=9.87s    p(90)=89.13ms  p(95)=146.55ms
+// ✓ http_req_failed................: 0.00%  ✓ 0         ✗ 197200
+// http_req_receiving.............: avg=370.97µs min=12.01µs med=84.33µs max=133.92ms p(90)=914.68µs p(95)=1.37ms  
+// http_req_sending...............: avg=1.23ms   min=4.88µs  med=29.46µs max=1.07s    p(90)=52.98µs  p(95)=62.71µs 
+// http_req_tls_handshaking.......: avg=0s       min=0s      med=0s      max=0s       p(90)=0s       p(95)=0s      
+// http_req_waiting...............: avg=127.54ms min=1.28ms  med=16.18ms max=9.84s    p(90)=88.59ms  p(95)=145.78ms
+// http_reqs......................: 197200 87.941363/s
+// iteration_duration.............: avg=25.65s   min=22.9s   med=25.22s  max=36.55s   p(90)=26.33s   p(95)=31.85s  
+// iterations.....................: 39435  17.586043/s
+// vus............................: 1      min=1       max=500 
+// vus_max........................: 500    min=500     max=500 
+
+
+// running (37m22.4s), 000/500 VUs, 39435 complete and 5 interrupted iterations
+// default ✓ [======================================] 000/500 VUs  37m0s
 
 // --------------------------------------------
 // STAGING: 

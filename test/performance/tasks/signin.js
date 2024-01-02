@@ -61,7 +61,6 @@ export default function () {
 }
 
 // DEV: 
-
 // execution: local
 // script: signin.js
 // output: -
@@ -72,28 +71,28 @@ export default function () {
 
 // ✓ Signin status is 200
 
-// checks.........................: 100.00% ✓ 339      ✗ 0    
-// data_received..................: 218 kB  2.1 kB/s
-// data_sent......................: 64 kB   615 B/s
-// http_req_blocked...............: avg=15.91µs  min=2.55µs   med=5.73µs   max=538.14µs p(90)=8.56µs   p(95)=10.87µs 
-// http_req_connecting............: avg=6.9µs    min=0s       med=0s       max=411.4µs  p(90)=0s       p(95)=0s      
-// ✗ http_req_duration..............: avg=472.25ms min=220.01ms med=329.17ms max=1.74s    p(90)=817.14ms p(95)=1.01s   
-//   { expected_response:true }...: avg=472.25ms min=220.01ms med=329.17ms max=1.74s    p(90)=817.14ms p(95)=1.01s   
-// ✓ http_req_failed................: 0.00%   ✓ 0        ✗ 339  
-// http_req_receiving.............: avg=78.36µs  min=41.68µs  med=72.33µs  max=556µs    p(90)=94.3µs   p(95)=101.05µs
-// http_req_sending...............: avg=33.02µs  min=12.57µs  med=31.36µs  max=162.13µs p(90)=41.16µs  p(95)=52.88µs 
+// checks.........................: 100.00% ✓ 385      ✗ 0    
+// data_received..................: 248 kB  2.4 kB/s
+// data_sent......................: 72 kB   707 B/s
+// http_req_blocked...............: avg=13.13µs  min=2.77µs   med=5.94µs   max=525.3µs  p(90)=9.13µs   p(95)=12.44µs 
+// http_req_connecting............: avg=4.79µs   min=0s       med=0s       max=371.99µs p(90)=0s       p(95)=0s      
+// ✗ http_req_duration..............: avg=256.29ms min=165.83ms med=219.94ms max=932.77ms p(90)=347.8ms  p(95)=512.18ms
+//   { expected_response:true }...: avg=256.29ms min=165.83ms med=219.94ms max=932.77ms p(90)=347.8ms  p(95)=512.18ms
+// ✓ http_req_failed................: 0.00%   ✓ 0        ✗ 385  
+// http_req_receiving.............: avg=77.83µs  min=29.71µs  med=71.88µs  max=666.36µs p(90)=99.31µs  p(95)=128.29µs
+// http_req_sending...............: avg=33.59µs  min=12.17µs  med=32.04µs  max=131.61µs p(90)=43.19µs  p(95)=58.63µs 
 // http_req_tls_handshaking.......: avg=0s       min=0s       med=0s       max=0s       p(90)=0s       p(95)=0s      
-// http_req_waiting...............: avg=472.14ms min=219.91ms med=329.08ms max=1.74s    p(90)=817.03ms p(95)=1.01s   
-// http_reqs......................: 339     3.259829/s
-// iteration_duration.............: avg=1.46s    min=1.22s    med=1.32s    max=2.74s    p(90)=1.81s    p(95)=2s      
-// iterations.....................: 335     3.221365/s
+// http_req_waiting...............: avg=256.18ms min=165.73ms med=219.82ms max=932.6ms  p(90)=347.67ms p(95)=512.05ms
+// http_reqs......................: 385     3.774789/s
+// iteration_duration.............: avg=1.25s    min=1.16s    med=1.22s    max=1.93s    p(90)=1.34s    p(95)=1.5s    
+// iterations.....................: 379     3.715961/s
 // vus............................: 9       min=1      max=9  
 // vus_max........................: 100     min=100    max=100
 
 
-// running (01m44.0s), 000/100 VUs, 335 complete and 9 interrupted iterations
-// default ✗ [==>-----------------------------------] 009/100 VUs  01m44.0s/20m00.0s
-// ERRO[0105] thresholds on metrics 'http_req_duration' were crossed; at least one has abortOnFail enabled, stopping test prematurely 
+// running (01m42.0s), 000/100 VUs, 379 complete and 9 interrupted iterations
+// default ✗ [==>-----------------------------------] 007/100 VUs  01m42.0s/20m00.0s
+// ERRO[0103] thresholds on metrics 'http_req_duration' were crossed; at least one has abortOnFail enabled, stopping test prematurely 
 
 
 // STAGING:
@@ -129,4 +128,3 @@ export default function () {
 
 // running (00m40.0s), 000/100 VUs, 50 complete and 4 interrupted iterations
 // default ✗ [>-------------------------------------] 004/100 VUs  00m40.0s/20m00.0s
-// ERRO[0041] thresholds on metrics 'http_req_duration' were crossed; at least one has abortOnFail enabled, stopping test prematurely 
