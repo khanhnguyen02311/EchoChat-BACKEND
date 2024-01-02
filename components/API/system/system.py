@@ -85,7 +85,7 @@ def generate(start_from: int):
                                                                       content=message_content))
                 if err is not None:
                     print("ERROR: ", err)
-            sleep(0.2)
+            sleep(0.1)
 
         session.commit()
     print("Done")
