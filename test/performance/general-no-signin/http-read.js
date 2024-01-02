@@ -34,9 +34,9 @@ if (__ENV.STAGE === "staging") {
             {
                 threshold: 'p(95)<500',
                 abortOnFail: true,
-                delayAbortEval: '5s',
+                delayAbortEval: '10s',
             }
-        ], // 95% of requests should be below 1s
+        ], // 95% of requests should be below 500ms
     };
 } else {  // dev
     BASE_URL = "http://localhost";
