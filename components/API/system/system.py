@@ -1,3 +1,5 @@
+from time import sleep
+
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from sqlalchemy import select
 from components.data.schemas.scylla_schemas import GroupPOST
@@ -24,18 +26,16 @@ def reset():
         f"{{'class': 'NetworkTopologyStrategy', 'replication_factor': {Scylla.DB_REPLICATION_FACTOR}}}")
     ScyllaSession.execute(f"USE {Scylla.DB_KEYSPACE}")
     s_models.sync_tables()
-    
+
     print("Done")
 
 
-def generate():
-    # // TODO: generate test data
+def generate(start_from: int):
     hashed_password = handle_create_hash("system_user_password")
-    group = None
     start = 1
     with PostgresSession() as session:
         # 6000 system users
-        for i in range(1, 6001):
+        for i in range(start_from, start_from + 500):
             if (i - 1) % 20 == 0:
                 start = i
             new_accountinfo = p_models.Accountinfo(name=f"System User No.{i}")
@@ -58,17 +58,17 @@ def generate():
                 return
             print(f"{group.name} set up completely. Group owner: {new_account.id}")
             message_content = f"User {new_accountinfo.name} has created group."
-            
+
             err, _ = handle_add_new_message(s_schemas.MessagePOST(group_id=group.id,
-                                                                    accountinfo_id=new_accountinfo.id,
-                                                                    group_name=group.name,
-                                                                    accountinfo_name=new_accountinfo.name,
-                                                                    type=s_models.CONSTANT.Message_type[2],
-                                                                    content=message_content))
+                                                                  accountinfo_id=new_accountinfo.id,
+                                                                  group_name=group.name,
+                                                                  accountinfo_name=new_accountinfo.name,
+                                                                  type=s_models.CONSTANT.Message_type[2],
+                                                                  content=message_content))
             if err is not None:
                 print("ERROR: ", err)
-            
-            for j in range(start, start+20):
+
+            for j in range(start, start + 20):
                 if j == i:
                     continue
                 err, _ = handle_add_new_participant(group.id, j, accountinfo_name=f"System User No.{j}")
@@ -78,30 +78,20 @@ def generate():
                 message_content = f"User System User No.{j} joined group {group.name}."
 
                 err, _ = handle_add_new_message(s_schemas.MessagePOST(group_id=group.id,
-                                                                    accountinfo_id=j,
-                                                                    group_name=group.name,
-                                                                    accountinfo_name=f"System User No.{j}",
-                                                                    type=s_models.CONSTANT.Message_type[2],
-                                                                    content=message_content))
+                                                                      accountinfo_id=j,
+                                                                      group_name=group.name,
+                                                                      accountinfo_name=f"System User No.{j}",
+                                                                      type=s_models.CONSTANT.Message_type[2],
+                                                                      content=message_content))
                 if err is not None:
                     print("ERROR: ", err)
-                    
+            sleep(0.1)
+
         session.commit()
     print("Done")
 
 
 def custom_execution():
-    # change all system user passwords into new passwords with lower hash rounds
-    # with PostgresSession() as session:
-    #     existed_system_user = session.scalar(select(p_models.Account).where(p_models.Account.username == f"system_user_1"))
-    #     if existed_system_user is None:
-    #         raise HTTPException(status_code=400, detail="Test data not existed")
-    #     for i in range(1, 6001):
-    #         account = session.scalar(select(p_models.Account).where(p_models.Account.username == f"system_user_{i}"))
-    #         account.password = handle_create_hash("system_user_password")
-    #         session.flush()
-    #     session.commit()
-    # print("Done")
     pass
 
 
@@ -123,12 +113,12 @@ def application_info():
 
 
 @router.get("/generate-testdata")
-def generate_testdata(background_task: BackgroundTasks):
-    with PostgresSession() as session:
-        existed_system_user = session.scalar(select(p_models.Account).where(p_models.Account.username == "system_user_1"))
-        if existed_system_user is not None:
-            raise HTTPException(status_code=400, detail="Test data already existed")
-    background_task.add_task(generate)
+def generate_testdata(background_task: BackgroundTasks, start_from: int):
+    # with PostgresSession() as session:
+    #     existed_system_user = session.scalar(select(p_models.Account).where(p_models.Account.username == "system_user_1"))
+    #     if existed_system_user is not None:
+    #         raise HTTPException(status_code=400, detail="Test data already existed")
+    background_task.add_task(generate, start_from)
     return "Generating test data on the background"
 
 
