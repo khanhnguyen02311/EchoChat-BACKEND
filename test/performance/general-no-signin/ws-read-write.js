@@ -112,9 +112,9 @@ export default function () {
     
             socket.on('open', () => {           
                 socket.setInterval(function () {
-                    console.log(groups.length);
+                    // console.log(groups.length);
                     let randomGroup = groups[Math.floor(Math.random() * groups.length)];
-                    console.log(`Sending message to group ${randomGroup}`)
+                    // console.log(`Sending message to group ${randomGroup}`)
                     socket.send(JSON.stringify({
                         type: "message-new",
                         data: {

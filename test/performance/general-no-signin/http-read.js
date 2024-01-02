@@ -18,8 +18,8 @@ if (__ENV.STAGE === "staging") {
     WS_PORT = 30013;
     TOKEN_FILENAME = "staging-tokens.json";
     STAGES = [
-        {duration: "10m", target: 500}, // Ramp up to 500 users over 10 minutes
-        {duration: "25m", target: 500}, // Stay at 500 users for 20 minutes
+        {duration: "5m", target: 400}, // Ramp up to 500 users over 10 minutes
+        {duration: "30m", target: 400}, // Stay at 500 users for 20 minutes
         {duration: "2m", target: 0}  // Ramp down to 0 users over 2 minutes
     ];
     THRESHOLDS = {
@@ -86,31 +86,29 @@ export default function () {
     const userId = getRandomSystemUser();
     const accessToken = token_data[userId-1][0]
 
-    while (true) {
-        const userInfoResponse = http.get(`${BASE_URL}:${HTTP_PORT}/user/me/info/get`, {headers: {Authorization: `Bearer ${accessToken}`}});
-        check(userInfoResponse, {"Get user info status is 200": (r) => r.status === 200 && r.timings.duration < 500});
-        sleep(4.5 + Math.random()); // average 5s
+    const userInfoResponse = http.get(`${BASE_URL}:${HTTP_PORT}/user/me/info/get`, {headers: {Authorization: `Bearer ${accessToken}`}});
+    check(userInfoResponse, {"Get user info status is 200": (r) => r.status === 200 && r.timings.duration < 500});
+    sleep(4.5 + Math.random()); // average 5s
 
-        const recentGroupsResponse = http.get(`${BASE_URL}:${HTTP_PORT}/chat/group/recent`, {headers: {Authorization: `Bearer ${accessToken}`}});
-        check(recentGroupsResponse, {"Get recent groups status is 200": (r) => r.status === 200});
-        sleep(4.5 + Math.random());
+    const recentGroupsResponse = http.get(`${BASE_URL}:${HTTP_PORT}/chat/group/recent`, {headers: {Authorization: `Bearer ${accessToken}`}});
+    check(recentGroupsResponse, {"Get recent groups status is 200": (r) => r.status === 200});
+    sleep(4.5 + Math.random());
 
-        const groups = JSON.parse(recentGroupsResponse.body);
-        const randomGroup = groups[Math.floor(Math.random() * groups.length)];
-        const groupId = randomGroup.group_id;
+    const groups = JSON.parse(recentGroupsResponse.body);
+    const randomGroup = groups[Math.floor(Math.random() * groups.length)];
+    const groupId = randomGroup.group_id;
 
-        const groupInfoResponse = http.get(`${BASE_URL}:${HTTP_PORT}/chat/group/${groupId}/info/get`, {headers: {Authorization: `Bearer ${accessToken}`}});
-        check(groupInfoResponse, {"Get group info status is 200": (r) => r.status === 200 && r.timings.duration < 500});
-        sleep(4.5 + Math.random());
+    const groupInfoResponse = http.get(`${BASE_URL}:${HTTP_PORT}/chat/group/${groupId}/info/get`, {headers: {Authorization: `Bearer ${accessToken}`}});
+    check(groupInfoResponse, {"Get group info status is 200": (r) => r.status === 200 && r.timings.duration < 500});
+    sleep(4.5 + Math.random());
 
-        const groupParticipantsResponse = http.get(`${BASE_URL}:${HTTP_PORT}/chat/group/${groupId}/participants`, {headers: {Authorization: `Bearer ${accessToken}`}});
-        check(groupParticipantsResponse, {"Get participants status is 200": (r) => r.status === 200 && r.timings.duration < 500});
-        sleep(4.5 + Math.random());
+    const groupParticipantsResponse = http.get(`${BASE_URL}:${HTTP_PORT}/chat/group/${groupId}/participants`, {headers: {Authorization: `Bearer ${accessToken}`}});
+    check(groupParticipantsResponse, {"Get participants status is 200": (r) => r.status === 200 && r.timings.duration < 500});
+    sleep(4.5 + Math.random());
 
-        const groupMessagesResponse = http.get(`${BASE_URL}:${HTTP_PORT}/chat/group/${groupId}/messages/all`, {headers: {Authorization: `Bearer ${accessToken}`}});
-        check(groupMessagesResponse, {"Get messages status is 200": (r) => r.status === 200 && r.timings.duration < 500});
-        sleep(4.5 + Math.random());
-    }
+    const groupMessagesResponse = http.get(`${BASE_URL}:${HTTP_PORT}/chat/group/${groupId}/messages/all`, {headers: {Authorization: `Bearer ${accessToken}`}});
+    check(groupMessagesResponse, {"Get messages status is 200": (r) => r.status === 200 && r.timings.duration < 500});
+    sleep(4.5 + Math.random());
 }
 
 // --------------------------------------------

@@ -94,7 +94,8 @@ class BEServicerRMQ(object):
     def _on_delivery_confirmation(self, method_frame):
         confirmation_type = method_frame.method.NAME.split('.')[1].lower()
         if confirmation_type == 'ack':
-            print("RabbitMQ: Message published")
+            pass
+            # print("RabbitMQ: Message published")
         elif confirmation_type == 'nack':
             print("RabbitMQ: Message not published")
         else:
