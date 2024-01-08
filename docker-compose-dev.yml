@@ -1,0 +1,86 @@
+# "docker compose -p echochat-dev -f docker-compose-dev.yml --env-file .env.dev config"         to check the compose configs
+# "docker compose -p echochat-dev -f docker-compose-dev.yml --env-file .env.dev up"          to run the compose file
+# "docker compose -p echochat-dev -f docker-compose-dev.yml --env-file .env.dev stop"           to stop the containers
+# "docker compose -p echochat-dev -f docker-compose-dev.yml --env-file .env.dev down --volumes" to remove the containers & networks & data volumes
+
+# "docker exec -it <container-name> /bin/bash" to connect to container
+# "psql -h localhost -d testdb1 -U testuser1" inside postgres container
+# "cqlsh" inside scylla container
+
+
+version: '4'
+
+services:
+  db-postgres:
+    image: postgres:15
+    restart: no
+    ports:
+      - '5432:5432'  # external:internal
+    environment:
+      - 'POSTGRES_DB=${POSTGRES_DB}'
+      - 'POSTGRES_USER=${POSTGRES_USR}'
+      - 'POSTGRES_PASSWORD=${POSTGRES_PWD}'
+
+  #  fs:
+  #    build:
+  #      context: "https://github.com/khanhnguyen02311/simple-go-file-server.git"
+  #      dockerfile: Dockerfile
+  #    restart: no
+  #    ports:
+  #      - "1323:1323"
+  #    volumes:
+  #      - ./storage:/app/files
+
+  db-redis:
+    image: redis:7
+    restart: no
+    ports:
+      - '6379:6379'
+    command: 'redis-server --save 60 1 --loglevel warning --requirepass ${REDIS_PWD}'
+
+  db-scylla-1:
+    image: scylladb/scylla
+    restart: no
+    ports:
+      - '9042:9042'
+    command: --developer-mode 1 --smp 1 --memory 1500M --overprovisioned 1
+
+  #  db-scylla-2:
+  #    image: scylladb/scylla
+  #    restart: no
+  #    ports:
+  #      - '9043:9042'
+  #    command: --developer-mode 1 --smp 1 --memory 1500M --overprovisioned 1 --seeds=db-scylla-1
+  #    depends_on:
+  #      - db-scylla-1
+  #
+  #  db-scylla-3:
+  #    image: scylladb/scylla
+  #    restart: no
+  #    ports:
+  #      - '9044:9042'
+  #    command: --developer-mode 1 --smp 1 --memory 1500M --overprovisioned 1 --seeds=db-scylla-1
+  #    depends_on:
+  #      - db-scylla-1
+
+  #  obsv-prometheus:
+  #    image: prom/prometheus
+  #    restart: unless-stopped
+  #    ports:
+  #      - '9090:9090'
+  #    volumes:
+  #      - ./etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  #    command: --config.file=/etc/prometheus/prometheus.yml
+
+
+  proto-rabbitmq:
+    image: rabbitmq:3-management
+    restart: no
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    volumes:
+      - ./etc/rabbitmq/data/:/var/lib/rabbitmq/mnesia
+      - ./etc/rabbitmq/log/:/var/log/rabbitmq
+      - ./etc/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./etc/rabbitmq/definitions-rabbitmq.json:/etc/rabbitmq/definitions-rabbitmq.json

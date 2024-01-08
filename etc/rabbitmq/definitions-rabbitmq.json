@@ -1,0 +1,25 @@
+{
+  "users": [
+    {
+      "name": "echochatadmin",
+      "password": "echochatadmin123",
+      "tags": [
+        "administrator"
+      ]
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "echochatadmin",
+      "vhost": "/",
+      "configure": ".*",
+      "read": ".*",
+      "write": ".*"
+    }
+  ]
+}

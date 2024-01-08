@@ -1,19 +1,15 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
+import components.data.schemas.postgres_schemas as p_schemas
 from components.functions.account import handle_authenticate_account
 from components.functions.security import handle_create_access_token, handle_create_refresh_token
-from components.storages import PostgresSession
+from components.data import PostgresSession
 
 router = APIRouter()
 
 
-class InputSignin(BaseModel):
-    username_or_email: str
-    password: str
-
-
 @router.post("/signin")
-async def signin(data: InputSignin):
+async def signin(data: p_schemas.AccountLoginGET):
     with PostgresSession.begin() as session:
         error, user = handle_authenticate_account(session,
                                                   username_or_email=data.username_or_email,

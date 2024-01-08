@@ -1,0 +1,166 @@
+# "docker compose -p echochat-staging -f docker-compose-staging.yml --env-file .env.staging up --build"          to run the compose file
+
+version: "4"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile-staging
+    restart: unless-stopped
+    depends_on:
+      - fs
+      - db-postgres
+      - db-redis
+      - db-scylla-1
+      - db-scylla-2
+      - db-scylla-3
+      - proto-rabbitmq
+    env_file:
+      - .env.staging
+    ports:
+      - "127.0.0.1:20011:${APP_PORT_API}" # HTTP API
+      # - "127.0.0.1:20012:${PROTO_GRPC_PORT}" # gRPC API
+    #    environment:
+    #      - 'APP_NAME=${OBSERVABILITY_SERVICE_NAME}'
+    #      - OTEL_PYTHON_LOG_CORRELATION="true"
+    #      - OTEL_TRACES_EXPORTER="console,otlp"
+    #      - OTEL_EXPORTER_OTLP_ENDPOINT="0.0.0.0:${OBSERVABILITY_TRACING_PORT}"
+    #      - OTEL_METRICS_EXPORTER="console"
+    #      - 'OTEL_SERVICE_NAME:${OBSERVABILITY_SERVICE_NAME}'
+    #      - 'OTEL_RESOURCE_ATTRIBUTES="compose_service=${OBSERVABILITY_SERVICE_NAME}"'
+    networks:
+      - network-1
+
+
+  fs:
+    build:
+      context: "https://github.com/khanhnguyen02311/simple-go-file-server.git"
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:20012:1323"
+    volumes:
+      - ./storage:/app/files
+    networks:
+      - network-1
+
+
+  db-postgres:
+    image: postgres:15
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${POSTGRES_PORT}:5432'
+    environment:
+      - 'POSTGRES_DB=${POSTGRES_DB}'
+      - 'POSTGRES_USER=${POSTGRES_USR}'
+      - 'POSTGRES_PASSWORD=${POSTGRES_PWD}'
+      - POSTGRES_INITDB_ARGS="--auth-host=scram-sha-256"
+    #    volumes:
+    #      - ./etc/postgres:/var/lib/postgresql/data
+    networks:
+      - network-1
+
+
+  db-redis:
+    image: redis:7
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${REDIS_PORT}:6379'
+    command: 'redis-server --save 60 1 --loglevel warning --requirepass ${REDIS_PWD}'
+    #    volumes:
+    #      - ./etc/redis:/data
+    networks:
+      - network-1
+
+
+  db-scylla-1:
+    image: scylladb/scylla
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${SCYLLA_PORT}:9042'
+    #    volumes:
+    #      - "./etc/scylla-1/scylla.yaml:/etc/scylla/scylla.yaml"
+    #      - "./etc/scylla-1/cassandra-rackdc.properties.dc1:/etc/scylla/cassandra-rackdc.properties"
+    #      - "./etc/scylla-1/mutant-data.txt:/mutant-data.txt"
+    command: --smp 2 --memory 2500M --reserve-memory 4G
+    networks:
+      - network-1
+
+
+  db-scylla-2:
+    image: scylladb/scylla
+    restart: unless-stopped
+    depends_on:
+      - db-scylla-1
+    ports:
+      - '127.0.0.1:9043:9042'
+    #    volumes:
+    #      - "./etc/scylla-2/scylla.yaml:/etc/scylla/scylla.yaml"
+    #      - "./etc/scylla-2/cassandra-rackdc.properties.dc1:/etc/scylla/cassandra-rackdc.properties"
+    command: --smp 2 --memory 2500M --reserve-memory 4G --seeds=db-scylla-1
+    networks:
+      - network-1
+
+
+  db-scylla-3:
+    image: scylladb/scylla
+    restart: unless-stopped
+    depends_on:
+      - db-scylla-1
+    ports:
+      - '127.0.0.1:9044:9042'
+    #    volumes:
+    #      - "./etc/scylla-3/scylla.yaml:/etc/scylla/scylla.yaml"
+    #      - "./etc/scylla-3/cassandra-rackdc.properties.dc1:/etc/scylla/cassandra-rackdc.properties"
+    command: --smp 2 --memory 2500M --reserve-memory 4G --seeds=db-scylla-1
+    networks:
+      - network-1
+
+
+  proto-rabbitmq:
+    image: rabbitmq:3-management
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${PROTO_RMQ_PORT}:5672'
+      - '15672:15672'
+      - '15692:15692'
+    volumes:
+      - ./etc/rabbitmq/data/:/var/lib/rabbitmq/mnesia
+      - ./etc/rabbitmq/log/:/var/log/rabbitmq
+      - ./etc/rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./etc/rabbitmq/definitions-rabbitmq.json:/etc/rabbitmq/definitions-rabbitmq.json
+    networks:
+      - network-1
+
+
+  obsv-prometheus-app:
+    image: prom/prometheus
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - '127.0.0.1:9091:9090'
+    volumes:
+      - ./etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command: --config.file=/etc/prometheus/prometheus.yml
+    networks:
+      - network-1
+
+
+  obsv-prometheus-rabbitmq:
+    image: prom/prometheus
+    restart: unless-stopped
+    depends_on:
+      - proto-rabbitmq
+    ports:
+      - '127.0.0.1:15693:9090'
+    volumes:
+      - ./etc/prometheus/prometheus-rabbitmq.yml:/etc/prometheus/prometheus.yml
+    command: --config.file=/etc/prometheus/prometheus.yml
+    networks:
+      - network-1
+
+networks:
+  network-1:
+    driver: bridge

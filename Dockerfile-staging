@@ -1,0 +1,28 @@
+FROM ubuntu:22.04
+
+WORKDIR /app
+
+COPY requirements.txt ./
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    libev4 \
+    libev-dev \
+    python3-pip
+
+RUN pip install --upgrade pip && pip install --no-cache-dir --verbose -r requirements.txt
+
+COPY . .
+
+RUN python3 -m grpc_tools.protoc -I. --python_out=. --pyi_out=. --grpc_python_out=. ./components/services/proto/EchoChat.proto
+
+#CMD opentelemetry-instrument \
+#    --traces_exporter console,otlp \
+#    --metrics_exporter console \
+#    --service_name echochat-staging-metrics \
+#    --exporter_otlp_endpoint 0.0.0.0:4317 \
+#    python3 main.py --stage staging --debug True
+
+CMD python3 main.py --stage staging --debug True
+

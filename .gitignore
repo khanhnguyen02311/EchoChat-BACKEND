@@ -1,3 +1,19 @@
+# Production environment variables
+.env.prod
+
+# Auto-generated files
+components/services/proto/*_pb2.py
+components/services/proto/*_pb2.pyi
+components/services/proto/*_pb2_grpc.py
+
+# File storage
+storage/
+
+# docker volumes
+etc/rabbitmq/data
+etc/rabbitmq/log
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -120,7 +136,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-#.env
+#.env.dev
 #.venv
 #env/
 #venv/

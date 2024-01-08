@@ -3,15 +3,16 @@ from datetime import timedelta, datetime
 from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import jwt, JWTError
+from jose import jwt
 from passlib.context import CryptContext
 from sqlalchemy import select
 from pydantic import BaseModel, ConfigDict
 from configurations.conf import Env
-from components.storages import PostgresSession, RedisSession
-from components.storages.postgres_models import Account, Accountinfo
+from components.data import PostgresSession, RedisSession
+from components.data.DAOs import redis as d_redis
+from components.data.models.postgres_models import Account, Accountinfo
 
-pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto", sha256_crypt__default_rounds=400000)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin", scheme_name="JWT")
 
 
@@ -70,33 +71,50 @@ def handle_create_refresh_token(user: Account) -> str:
     return _create_token(user, "refresh")
 
 
-def handle_get_current_user(access_token: str) -> Accountinfo:
+def handle_get_current_user(access_token: str, query_type="Account") -> Account | Accountinfo:
     """Return the decoded user info from the input access token. Raise error if needed. \n
-        Return values: (decoded accountinfo)"""
+        Return values: (account or accountinfo)"""
     try:
         payload = _decode_token(access_token)
         if payload.get("typ_token") == "refresh":
             raise Exception("Cannot use refresh token")
-
-        user = payload.get("sub")
+        user_id = payload.get("sub").get("id") if query_type == "Account" else payload.get("sub").get("accountinfo_id")
+        # if exists in cache, return cache data
+        error, cached_user = d_redis.get_user_info(user_id, query_type)
+        if error is not None:
+            print(error)
+        if cached_user is not None:
+            return cached_user
+        # if not exists in cache, query and add to cache
+        if query_type == "Account":
+            user_query = select(Account).where(Account.id == user_id)
+        else:
+            user_query = select(Accountinfo).where(Accountinfo.id == user_id)
         with PostgresSession.begin() as session:
-            accountinfo_query = select(Accountinfo).where(Accountinfo.id == user.get("accountinfo_id"))
-            user = session.scalar(accountinfo_query)
+            user = session.scalar(user_query)
             if user is None:
                 raise Exception("User not found")
             session.expunge_all()
-            return user
+        d_redis.set_user_info(user, query_type)
+        return user
 
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=str(e))
 
 
-def handle_get_current_user_oauth2(access_token: Annotated[str, Depends(oauth2_scheme)]) -> Accountinfo:
-    """Return the decoded user info from the OAuth2 access token. Raise error if needed. \n
-    Return values: (decoded accountinfo)"""
+def handle_get_current_account(access_token: Annotated[str, Depends(oauth2_scheme)]) -> Account:
+    """Return the decoded user info from the Bearer access token. Raise error if needed. \n
+    Return values: (account)"""
 
-    return handle_get_current_user(access_token)
+    return handle_get_current_user(access_token, "Account")
+
+
+def handle_get_current_accountinfo(access_token: Annotated[str, Depends(oauth2_scheme)]) -> Accountinfo:
+    """Return the decoded user info from the Bearer access token. Raise error if needed. \n
+    Return values: (accountinfo)"""
+
+    return handle_get_current_user(access_token, "Accountinfo")
 
 
 def handle_renew_access_token(refresh_token: Annotated[str, Depends(oauth2_scheme)]) -> str | None:
@@ -109,8 +127,14 @@ def handle_renew_access_token(refresh_token: Annotated[str, Depends(oauth2_schem
             raise Exception("Cannot use access token")
 
         # Check from deactivated database
-        if RedisSession.get(payload.get("jti")) is not None:
+        if RedisSession.get(f"Logout:{payload.get('jti')}") is not None:
             raise Exception("Token expired")
+
+        error, cached_user = d_redis.get_user_info(payload.get("sub").get("id"), "Account")
+        if error is not None:
+            print(error)
+        if cached_user is not None:
+            return handle_create_access_token(cached_user)
 
         user = payload.get("sub")
         with PostgresSession.begin() as session:
@@ -133,7 +157,7 @@ async def handle_deactivate_token(refresh_token: Annotated[str, Depends(oauth2_s
         if payload.get("typ_token") == "access":
             raise Exception("Cannot use access token")
 
-        RedisSession.set(payload.get("jti"), "deactivate", ex=Env.SCR_REFRESH_TOKEN_EXPIRE_MINUTES * 60)
+        RedisSession.set(f"Logout:{payload.get('jti')}", 1, ex=Env.SCR_REFRESH_TOKEN_EXPIRE_MINUTES * 60)
 
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
