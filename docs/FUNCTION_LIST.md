@@ -20,10 +20,10 @@
     - [ ] Icon, emoji
     - [ ] Image & file
 - [ ] Send auto-remove message
-- [ ] Pin, unpin message
+- [x] Pin, unpin message
 - [ ] Delete message
 - [ ] Receive notifications
-    - [ ] New messages
+    - [x] New messages
     - [ ] New group invitations
 - [ ] Change group notification setting
 - [ ] Show activity status & see others status
@@ -40,8 +40,8 @@
 
 ### Group creators:
 
-- [ ] Grant, revoke admin group permission
-- [ ] Delete group
+- [x] Grant, revoke admin group permission
+- [x] Delete group
 
 ### Application admins:
 
