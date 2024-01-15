@@ -20,9 +20,9 @@ if (__ENV.STAGE === "staging") {
     WS_PORT = 30013;
     TOKEN_FILENAME = "staging-tokens.json";
     STAGES = [
-        {duration: "10m", target: 1000},
+        {duration: "5m", target: 1000},
         {duration: "30m", target: 1000},
-        {duration: "5m", target: 0} 
+        {duration: "2m", target: 0} 
     ];
     THRESHOLDS = {
         http_req_failed: [
@@ -54,13 +54,13 @@ if (__ENV.STAGE === "staging") {
     WS_PORT = 1323;
     TOKEN_FILENAME = "dev-tokens.json";
     STAGES = [
-      {duration: "5m", target: 800},
-      {duration: "20m", target: 800},
+      {duration: "10m", target: 1000},
+      {duration: "20m", target: 1000},
       {duration: "2m", target: 0} 
    ];
-   //  STAGES = [
-   //      {duration: "50m", target: 10000}, 
-   //  ];
+    // STAGES = [
+    //     {duration: "60m", target: 10000}, 
+    // ];
     THRESHOLDS = {
         http_req_failed: [
             {
@@ -149,7 +149,7 @@ export default function () {
             socket.on('error', function (e) {
                if (e.error() != 'websocket: close sent') {
                   RateWSOK.add(false);
-                  // console.log('An unexpected error occured: ', e.error());
+                  console.log('WS unexpected error happened: ', e.error());
                }
              });
     
@@ -175,6 +175,9 @@ export default function () {
         });
     
         check(wsResponse, { "WebSocket handshake is successful": (r) => r && r.status === 101 }); 
+        if (!wsResponse || wsResponse.status !== 101) {
+            console.log("WS error happened: ", wsResponse.error);
+        }
         check(wsResponse, { "Sent messages are fully received": (r) => r.sentMessages == r.successMessages });
         RateWSOK.add(wsResponse && wsResponse.status === 101);
         sleep(2 + Math.random());

@@ -21,14 +21,6 @@ services:
     ports:
       - "127.0.0.1:20011:${APP_PORT_API}" # HTTP API
       # - "127.0.0.1:20012:${PROTO_GRPC_PORT}" # gRPC API
-    #    environment:
-    #      - 'APP_NAME=${OBSERVABILITY_SERVICE_NAME}'
-    #      - OTEL_PYTHON_LOG_CORRELATION="true"
-    #      - OTEL_TRACES_EXPORTER="console,otlp"
-    #      - OTEL_EXPORTER_OTLP_ENDPOINT="0.0.0.0:${OBSERVABILITY_TRACING_PORT}"
-    #      - OTEL_METRICS_EXPORTER="console"
-    #      - 'OTEL_SERVICE_NAME:${OBSERVABILITY_SERVICE_NAME}'
-    #      - 'OTEL_RESOURCE_ATTRIBUTES="compose_service=${OBSERVABILITY_SERVICE_NAME}"'
     networks:
       - network-1
 

@@ -18,7 +18,7 @@ if (__ENV.STAGE === "staging") {
     WS_PORT = 30013;
     TOKEN_FILENAME = "staging-tokens.json";
     STAGES = [
-        {duration: "200m", target: 10000}
+        {duration: "30m", target: 10000}
     ];
     THRESHOLDS = {
         http_req_failed: [
@@ -106,3 +106,27 @@ export default function () {
 
     check(wsResponse, { "WebSocket handshake is successful": (r) => r && r.status === 101 }); 
 }
+
+// execution: local
+// script: ws-connect.js
+// output: -
+
+// scenarios: (100.00%) 1 scenario, 10000 max VUs, 30m30s max duration (incl. graceful stop):
+//       * default: Up to 10000 looping VUs for 30m0s over 1 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+// WARN[1831] No script iterations fully finished, consider making the test duration longer 
+
+// ✓ WebSocket handshake is successful
+
+// data_received.......: 1.3 MB 705 B/s
+// data_sent...........: 4.2 MB 2.3 kB/s
+// ✓ http_req_duration...: avg=0s     min=0s     med=0s    max=0s       p(90)=0s     p(95)=0s 
+// ✓ http_req_failed.....: 0.00%  ✓ 0        ✗ 0      
+// vus.................: 9999   min=3      max=9999 
+// vus_max.............: 10000  min=10000  max=10000
+// ws_connecting.......: avg=3.27ms min=1.87ms med=3.2ms max=130.54ms p(90)=3.78ms p(95)=4ms
+// ws_sessions.........: 9999   5.463451/s
+
+
+// running (30m30.2s), 00000/10000 VUs, 0 complete and 9999 interrupted iterations
+// default ✓ [======================================] 08972/10000 VUs  30m0s
